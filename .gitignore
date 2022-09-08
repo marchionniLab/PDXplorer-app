@@ -6,6 +6,9 @@
 *-Ex.R
 .Rproj.user
 
+# RStudio Project File
+*.Rproj
+
 # ShinyApps manifest
 *.dcf
 

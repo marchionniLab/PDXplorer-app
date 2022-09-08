@@ -15,10 +15,14 @@
     "ABCutilities": {
       "Package": "ABCutilities",
       "Version": "0.3.3",
-      "Source": "Local",
-      "RemotePkgRef": "local::~/projects/ABCutilities",
-      "RemoteType": "local",
-      "Hash": "734cec8de996fc38bd099f44b5c7a39f",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "luciorq",
+      "RemoteRepo": "ABCutilities",
+      "RemoteRef": "main",
+      "RemoteSha": "cb6edc40a7c0621958f8bb7e313a7e4733f2162a",
+      "Hash": "dfbd70dd4b210f8db61c7c43b18ef17a",
       "Requirements": [
         "data.table",
         "ggplot2",
@@ -76,6 +80,14 @@
       "git_last_commit": "3582d47",
       "git_last_commit_date": "2022-04-26",
       "Hash": "37348ee784e82c0a6b650146275b459d",
+      "Requirements": []
+    },
+    "BiocManager": {
+      "Package": "BiocManager",
+      "Version": "1.30.18",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Hash": "b1a93bed5debda5775636086fdca017b",
       "Requirements": []
     },
     "BiocNeighbors": {
@@ -144,6 +156,17 @@
         "irlba",
         "rsvd"
       ]
+    },
+    "BiocVersion": {
+      "Package": "BiocVersion",
+      "Version": "3.15.2",
+      "Source": "Bioconductor",
+      "git_url": "https://git.bioconductor.org/packages/BiocVersion",
+      "git_branch": "master",
+      "git_last_commit": "818ab03",
+      "git_last_commit_date": "2022-03-29",
+      "Hash": "48e545a2fa24a967de72b1114bfe96ac",
+      "Requirements": []
     },
     "Biostrings": {
       "Package": "Biostrings",
@@ -1983,6 +2006,14 @@
         "askpass"
       ]
     },
+    "packrat": {
+      "Package": "packrat",
+      "Version": "0.8.1",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Hash": "d84055adcb6bb1f4f0ce8c5f235bc328",
+      "Requirements": []
+    },
     "pillar": {
       "Package": "pillar",
       "Version": "1.8.1",
@@ -2244,6 +2275,22 @@
       "Repository": "RSPM",
       "Hash": "1de7ab598047a87bba48434ba35d497d",
       "Requirements": []
+    },
+    "rsconnect": {
+      "Package": "rsconnect",
+      "Version": "0.8.27",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Hash": "114103fbb50af041e93921ee67db8fa0",
+      "Requirements": [
+        "curl",
+        "digest",
+        "jsonlite",
+        "openssl",
+        "packrat",
+        "rstudioapi",
+        "yaml"
+      ]
     },
     "rstudioapi": {
       "Package": "rstudioapi",

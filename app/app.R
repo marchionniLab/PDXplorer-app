@@ -29,8 +29,15 @@ source("modules/ssgsea.R")
 source("modules/differential.R")
 source("modules/markers.R")
 
-invisible(sapply(list.files(path = "R/", pattern = "\\.R$", full.names = TRUE), source))
-shinyOptions(cache = cachem::cache_disk("./pdxrna-app-cache"))
+invisible(
+  sapply(
+    list.files(path = "R/", pattern = "\\.R$", full.names = TRUE),
+    source
+  )
+)
+shiny::shinyOptions(
+  cache = cachem::cache_disk("./pdxrna-app-cache")
+)
 
 
 dds <- reactiveValues(
@@ -45,27 +52,38 @@ rev_num <- system("git rev-parse HEAD", intern = TRUE)
 # Define UI for application that draws a histogram
 ui <- function(request) {
   fluidPage(
-    # theme = bslib::bs_theme(version = 5, bootswatch = "simplex"),
     # theme = shinytheme("simplex"), useShinyjs(), # spacelab
+    theme = bslib::bs_theme(
+      version = 5,
+      bootswatch = "simplex"
+    ),
     tags$head(
       tags$style(
         HTML("
-                                  .shiny-output-error-validation {
-                                  color: red;
-                                  font-size: 14px;
-                                  }
-                                ")
+              shiny-output-error-validation {
+              color: red;
+              font-size: 14px;
+              }
+        ")
       )
     ),
     tags$style(type = "text/css", ".navbar-nav {padding-top: 8px;}"),
     # tags$head(
     #  HTML('<script defer src="https://use.fontawesome.com/releases/v5.0.12/js/all.js" integrity="sha384-Voup2lBiiyZYkRto2XWqbzxHXwzcm4A5RfdfG6466bu5LqjwwrjXCMBQBLMWh7qR" crossorigin="anonymous"></script>')
     # ),
-    includeCSS(path = "AdminLTE.css"), # added  https://github.com/rstudio/shinydashboard
-    includeCSS(path = "shinydashboard.css"), #  https://github.com/rstudio/shinydashboard
-    includeScript(path = "app.js"), #  https://github.com/rstudio/shinydashboard/blob/master/srcjs/AdminLTE/app.js
-    navbarPage(HTML(paste0("PDXplorer RNA <br> <font size='0.5'>", rev_num, "</font>")),
-      windowTitle = "PDXplorer-RNA", id = "tabs", collapsible = TRUE,
+    # added  https://github.com/rstudio/shinydashboard
+    includeCSS(path = "AdminLTE.css"),
+    #  https://github.com/rstudio/shinydashboard
+    includeCSS(path = "shinydashboard.css"),
+    #  https://github.com/rstudio/shinydashboard/blob/master/srcjs/AdminLTE/app.js
+    includeScript(path = "app.js"),
+    navbarPage(
+      title = HTML(
+        paste0("PDXplorer RNA <br> <font size='0.5'>", rev_num, "</font>")
+      ),
+      windowTitle = "PDXplorer-RNA",
+      id = "tabs",
+      collapsible = TRUE,
       # tabPanel("Differential genes", icon=icon("calculator"),
       #          sidebarLayout(
       #            sidebarPanel(width=3,
@@ -105,7 +123,7 @@ ui <- function(request) {
       tabPanel("Gene exploration",
         icon = icon("chart-bar"),
         sidebarLayout(
-          # TODO(luciorq): Why bookmarkbutton at geinput?
+          # TODO: luciorq Why bookmarkbutton at geinput?
           sidebarPanel(
             width = 3,
             geInput("ge") # , bookmarkButton()
@@ -173,7 +191,15 @@ ui <- function(request) {
 }
 
 server <- function(input, output, session) {
-  RV <- reactiveValues(pca_ui_flg = FALSE, cls_ui_flg = FALSE, ge_ui_flg = FALSE, fus_ui_flg = FALSE, diff_ui_flg = FALSE, marker_ui_flg = FALSE, ssgsea_ui_flag = FALSE)
+  RV <- reactiveValues(
+    pca_ui_flg = FALSE,
+    cls_ui_flg = FALSE,
+    ge_ui_flg = FALSE,
+    fus_ui_flg = FALSE,
+    diff_ui_flg = FALSE,
+    marker_ui_flg = FALSE,
+    ssgsea_ui_flag = FALSE
+  )
 
   observeEvent(input$tabs, {
     if (grepl("PCA", input$tabs)) {
@@ -181,48 +207,100 @@ server <- function(input, output, session) {
         return()
       }
 
-
-      # TODO(luciorq): Use `ShinyCSSLoaders` while waiting for modules
+      # TODO: luciorq Use `ShinyCSSLoaders` while waiting for modules
       withProgress(message = "Loading dataset", {
         incProgress(0, detail = "This may take a while...")
 
-        # TODO(luciorq): Move data (RDS) to a database
+        # TODO: luciorq Move data (RDS) to a database or .parquet files
         dds$dds <- readRDS("./data/dds_all_march2021.RDS")
-        colData(dds$dds)$sampleName <- make.names(as.character(colData(dds$dds)$sampleName))
-        colData(dds$dds)$type_source <- paste0(colData(dds$dds)$type, "_", colData(dds$dds)$source)
+        colData(dds$dds)$sampleName <- make.names(
+          as.character(colData(dds$dds)$sampleName)
+        )
+        colData(dds$dds)$type_source <- paste0(
+          colData(dds$dds)$type, "_", colData(dds$dds)$source
+        )
         # dds$dds$type_design <- make.names(dds$dds$type_design)
-        dds$metadata <- data.frame(colData(dds$dds))[, c("patient", "passage", "source", "type", "purity"), ]
-        dds$metadata$type_source <- paste0(dds$metadata$type, "_", dds$metadata$source)
+        dds$metadata <- data.frame(
+          colData(dds$dds)
+        )[, c("patient", "passage", "source", "type", "purity"), ]
+        dds$metadata$type_source <- paste0(
+          dds$metadata$type, "_", dds$metadata$source
+        )
 
-        # TODO(luciorq): Move from `callModule` to `moduleServer`
-        callModule(pcaMod, "pca", dds = dds$dds, metadata = dds$metadata)
+        # TODO: luciorq Move from `callModule` to `moduleServer`
+        callModule(
+          pcaMod, "pca",
+          dds = dds$dds,
+          metadata = dds$metadata
+        )
         incProgress(1 / 7)
 
-        callModule(geMod, "ge", dds = dds$dds, metadata = dds$metadata)
+        # Gene Exploration
+        callModule(
+          geMod,
+          "ge",
+          dds = dds$dds,
+          metadata = dds$metadata
+        )
         incProgress(1 / 7)
 
-        callModule(clusterMod, "cls", dds = dds$dds, metadata = dds$metadata)
+        # Clustering
+        callModule(
+          clusterMod,
+          "cls",
+          dds = dds$dds,
+          metadata = dds$metadata
+        )
         incProgress(1 / 7)
 
-        callModule(markersMod, "markers", dds = dds$dds, metadata = dds$metadata)
+        # Marker genes
+        callModule(
+          markersMod,
+          "markers",
+          dds = dds$dds,
+          metadata = dds$metadata
+        )
         incProgress(1 / 7)
 
+        # Fusion explorer
         dds$fusions <- readRDS("./data/fusions_2019.RDS")
         dds$fusions$summary$sample <- make.names(dds$fusions$summary$sample)
         dds$fusions$list$sample <- make.names(dds$fusions$list$sample)
-        callModule(fusionMod, "fus", fusions = dds$fusions, metadata = dds$metadata)
+        callModule(
+          fusionMod,
+          "fus",
+          fusions = dds$fusions,
+          metadata = dds$metadata
+        )
         incProgress(1 / 7)
-        #
+
+        # ssGSEA
         dds$gsva <- readRDS("./data/gsva.RDS")
         dds$ssgsea <- readRDS("./data/ssgsea.RDS")
-        callModule(gseaMod, "gsea", dds = dds$dds, gsva = dds$gsva, ssgsea = dds$ssgsea, metadata = dds$metadata)
+        callModule(
+          gseaMod,
+          "gsea",
+          dds = dds$dds,
+          gsva = dds$gsva,
+          ssgsea = dds$ssgsea,
+          metadata = dds$metadata
+        )
         incProgress(1 / 7)
 
-
+        # Differential genes
         dds$fit <- readRDS("./data/fit_all_march2021.RDS")
         dds$fit_pdx <- readRDS("./data/fit_pdxOnly_march2021.RDS")
         dds$fit_primary <- readRDS("./data/fit_primaryOnly_march2021.RDS")
-        callModule(diffMod, "diff", dds = dds$dds, metadata = dds$metadata, fit = dds$fit, fit_pdx = dds$fit_pdx, fit_primary = dds$fit_primary)
+
+        callModule(
+          diffMod,
+          "diff",
+          dds = dds$dds,
+          metadata = dds$metadata,
+          fit = dds$fit,
+          fit_pdx = dds$fit_pdx,
+          fit_primary = dds$fit_primary
+        )
         incProgress(1 / 7)
       })
       RV$pca_ui_flg <- TRUE
@@ -231,5 +309,9 @@ server <- function(input, output, session) {
 }
 
 # Run the application
-enableBookmarking("url")
-shinyApp(ui = ui, server = server, enableBookmarking = "url")
+shiny::enableBookmarking("url")
+shiny::shinyApp(
+  ui = ui,
+  server = server,
+  enableBookmarking = "url"
+)

@@ -12,6 +12,7 @@ library(gridExtra)
 library(codeModules)
 library(ggdendro)
 
+
 # library(GSVA)
 # library(promises)
 # library(future)
@@ -47,8 +48,9 @@ dds <- reactiveValues(
   gsva = NULL,
   ssgsea = NULL
 )
-rev_num <- system("git rev-parse HEAD", intern = TRUE)
 
+# rev_num <- system("git rev-parse HEAD", intern = TRUE)
+rev_num <- "0.1.0"
 # Define UI for application that draws a histogram
 ui <- function(request) {
   fluidPage(
@@ -77,6 +79,9 @@ ui <- function(request) {
     includeCSS(path = "shinydashboard.css"),
     #  https://github.com/rstudio/shinydashboard/blob/master/srcjs/AdminLTE/app.js
     includeScript(path = "app.js"),
+
+    # Bookmark Button
+    shiny::bookmarkButton(),
     navbarPage(
       title = HTML(
         paste0("PDXplorer RNA <br> <font size='0.5'>", rev_num, "</font>")

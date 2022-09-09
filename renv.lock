@@ -1004,6 +1004,16 @@
         "zlibbioc"
       ]
     },
+    "VennDiagram": {
+      "Package": "VennDiagram",
+      "Version": "1.7.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "6b628f0aee185fdb5d6ce2b5eb477e52",
+      "Requirements": [
+        "futile.logger"
+      ]
+    },
     "XML": {
       "Package": "XML",
       "Version": "3.99-0.10",
@@ -1913,6 +1923,17 @@
         "ggplot2"
       ]
     },
+    "ggjoy": {
+      "Package": "ggjoy",
+      "Version": "0.4.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "e93e8ef245dc64060a179beb094d2b29",
+      "Requirements": [
+        "ggplot2",
+        "ggridges"
+      ]
+    },
     "ggplot2": {
       "Package": "ggplot2",
       "Version": "3.3.6",
@@ -1955,6 +1976,25 @@
         "ggplot2",
         "rlang",
         "scales"
+      ]
+    },
+    "ggridges": {
+      "Package": "ggridges",
+      "Version": "0.5.3",
+      "Source": "CRAN",
+      "Repository": "CRAN",
+      "RemoteType": "standard",
+      "RemotePkgRef": "ggridges",
+      "RemoteRef": "ggridges",
+      "RemoteRepos": "https://cran.rstudio.com",
+      "RemotePkgPlatform": "aarch64-apple-darwin20",
+      "RemoteSha": "0.5.3",
+      "Hash": "9d028e8f37c84dba356ce3c367a1978e",
+      "Requirements": [
+        "ggplot2",
+        "plyr",
+        "scales",
+        "withr"
       ]
     },
     "glue": {

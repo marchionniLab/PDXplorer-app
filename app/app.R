@@ -12,15 +12,6 @@ library(gridExtra)
 library(codeModules)
 library(ggdendro)
 
-
-# library(GSVA)
-# library(promises)
-# library(future)
-# library(clipr)
-
-# library(DT)
-# library(shinydashboard)
-
 source("modules/pca.R")
 source("modules/clustering.R")
 source("modules/gene_explorer.R")
@@ -49,8 +40,8 @@ dds <- reactiveValues(
   ssgsea = NULL
 )
 
-# rev_num <- system("git rev-parse HEAD", intern = TRUE)
 rev_num <- "0.1.0"
+
 # Define UI for application that draws a histogram
 ui <- function(request) {
   fluidPage(
@@ -70,6 +61,7 @@ ui <- function(request) {
       )
     ),
     tags$style(type = "text/css", ".navbar-nav {padding-top: 8px;}"),
+    # TODO: @luciorq Move CSS, JS, and HTML to relevant dirs
     # tags$head(
     #  HTML('<script defer src="https://use.fontawesome.com/releases/v5.0.12/js/all.js" integrity="sha384-Voup2lBiiyZYkRto2XWqbzxHXwzcm4A5RfdfG6466bu5LqjwwrjXCMBQBLMWh7qR" crossorigin="anonymous"></script>')
     # ),
@@ -89,16 +81,6 @@ ui <- function(request) {
       windowTitle = "PDXplorer-RNA",
       id = "tabs",
       collapsible = TRUE,
-      # tabPanel("Differential genes", icon=icon("calculator"),
-      #          sidebarLayout(
-      #            sidebarPanel(width=3,
-      #                         diffInput("diff")
-      #            ),
-      #            mainPanel(width = 9,
-      #                      diffOutput("diff")
-      #            )
-      #          )
-      # ),
       tabPanel("PCA",
         icon = icon("cube"),
         sidebarLayout(
@@ -128,10 +110,9 @@ ui <- function(request) {
       tabPanel("Gene exploration",
         icon = icon("chart-bar"),
         sidebarLayout(
-          # TODO: luciorq Why bookmarkbutton at geinput?
           sidebarPanel(
             width = 3,
-            geInput("ge") # , bookmarkButton()
+            geInput("ge")
           ),
           mainPanel(
             width = 9,
@@ -212,12 +193,12 @@ server <- function(input, output, session) {
         return()
       }
 
-      # TODO: luciorq Use `ShinyCSSLoaders` while waiting for modules
+      # TODO: @luciorq Use `ShinyCSSLoaders` while waiting for modules
       withProgress(message = "Loading dataset", {
         incProgress(0, detail = "This may take a while...")
 
-        # TODO: luciorq Move data (RDS) to a database or .parquet files
-        dds$dds <- readRDS("./data/dds_all_march2021.RDS")
+        # TODO: @luciorq Move data (RDS) to a database or .parquet files
+        dds$dds <- readRDS("../data/dds_all_nov2022.rds")
         colData(dds$dds)$sampleName <- make.names(
           as.character(colData(dds$dds)$sampleName)
         )
@@ -232,7 +213,7 @@ server <- function(input, output, session) {
           dds$metadata$type, "_", dds$metadata$source
         )
 
-        # TODO: luciorq Move from `callModule` to `moduleServer`
+        # TODO: @luciorq Move from `callModule` to `moduleServer`
         callModule(
           pcaMod, "pca",
           dds = dds$dds,
@@ -268,7 +249,7 @@ server <- function(input, output, session) {
         incProgress(1 / 7)
 
         # Fusion explorer
-        dds$fusions <- readRDS("./data/fusions_2019.RDS")
+        dds$fusions <- readRDS("../data/fusions_2019.RDS")
         dds$fusions$summary$sample <- make.names(dds$fusions$summary$sample)
         dds$fusions$list$sample <- make.names(dds$fusions$list$sample)
         callModule(
@@ -280,8 +261,8 @@ server <- function(input, output, session) {
         incProgress(1 / 7)
 
         # ssGSEA
-        dds$gsva <- readRDS("./data/gsva.RDS")
-        dds$ssgsea <- readRDS("./data/ssgsea.RDS")
+        dds$gsva <- readRDS("../data/gsva.RDS")
+        dds$ssgsea <- readRDS("../data/ssgsea.RDS")
         callModule(
           gseaMod,
           "gsea",
@@ -293,9 +274,9 @@ server <- function(input, output, session) {
         incProgress(1 / 7)
 
         # Differential genes
-        dds$fit <- readRDS("./data/fit_all_march2021.RDS")
-        dds$fit_pdx <- readRDS("./data/fit_pdxOnly_march2021.RDS")
-        dds$fit_primary <- readRDS("./data/fit_primaryOnly_march2021.RDS")
+        dds$fit <- readRDS("../data/fit_all_march2021.RDS")
+        dds$fit_pdx <- readRDS("../data/fit_pdxOnly_march2021.RDS")
+        dds$fit_primary <- readRDS("../data/fit_primaryOnly_march2021.RDS")
 
         callModule(
           diffMod,

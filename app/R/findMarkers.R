@@ -35,11 +35,10 @@ library(DESeq2)
   return(list(var.post = eb.out$var.post, df.total = df.total))
 }
 
-.ranksafe_qr <- function(design, tol = 1e-7)
-                         # Rank-checking QR decomposition of a design matrix. Throws an
-                         # error if the design matrix is not of full rank, which simplifies
+# Rank-checking QR decomposition of a design matrix. Throws an
+# error if the design matrix is not of full rank, which simplifies
 # downstream processes as full rank can always be assumed.
-{
+.ranksafe_qr <- function(design, tol = 1e-7) {
   out <- qr(design, LAPACK = TRUE)
   d <- diag(out$qr)
   if (!all(abs(d) > tol)) {
@@ -82,13 +81,17 @@ findMarkers2 <- function(x, clusters, design = NULL, pval.type = c("any", "all")
     low.out <- .perform_eb_shrinkage(sigma2[!higher],
       covariate = means[!higher], design = full.design
     )
-    eb.out <- mapply(low.out, high.out, FUN = function(low,
-                                                       high) {
-      val <- numeric(length(means))
-      val[higher] <- high
-      val[!higher] <- low
-      val
-    }, SIMPLIFY = FALSE)
+    eb.out <- mapply(
+      low.out,
+      high.out,
+      FUN = function(low, high) {
+        val <- numeric(length(means))
+        val[higher] <- high
+        val[!higher] <- low
+        val
+      },
+      SIMPLIFY = FALSE
+    )
   }
   lfit <- lmFit(rbind(seq_len(nrow(full.design))), full.design)
   output <- vector("list", length(clust.vals))
@@ -154,14 +157,13 @@ findMarkers2 <- function(x, clusters, design = NULL, pval.type = c("any", "all")
   return(output)
 }
 
-
-
-
-
-
-
-
-findMarkers3 <- function(x, clusters, design = NULL, pval.type = c("any", "all"), direction = c("any", "up", "down"), min.mean = 0.1, subset.row = NULL) {
+findMarkers3 <- function(x,
+                         clusters,
+                         design = NULL,
+                         pval.type = c("any", "all"),
+                         direction = c("any", "up", "down"),
+                         min.mean = 0.1,
+                         subset.row = NULL) {
   clusters <- as.factor(clusters)
   full.design <- model.matrix(~ 0 + clusters)
   colnames(full.design) <- clust.vals <- levels(clusters)
@@ -177,17 +179,33 @@ findMarkers3 <- function(x, clusters, design = NULL, pval.type = c("any", "all")
   direction <- match.arg(direction)
   subset.row <- .subset_to_index(subset.row, x, byrow = TRUE)
   QR <- .ranksafe_qr(full.design)
-  # TODO: luciorq Newer versions of scran removed manual .Call in favor of functions
+  # TODO: @luciorq Newer versions of scran removed manual .Call in favor of functions
   # + from commit f19ff3efa356760164e6b3279378fb70a56845d7
   # + https://github.com/MarioniLab/scran/commit/f19ff3efa356760164e6b3279378fb70a56845d7
   # + use :
-  # + it_linear_model <- function(qr, qraux, exprs, subset, get_coefs) {
+  # + fit_linear_model <- function(qr, qraux, exprs, subset, get_coefs) {
   #   .Call('_scran_fit_linear_model', PACKAGE = 'scran', qr, qraux, exprs, subset, get_coefs)
   # }
-  stats <- .Call(
-    scran:::cxx_fit_linear_model, QR$qr, QR$qraux,
-    x, subset.row - 1L, TRUE
+
+  # stats <- .Call(
+  #  scran:::cxx_fit_linear_model, QR$qr, QR$qraux,
+  #  x, subset.row - 1L, TRUE
+  # )
+  scran_fit_linear_model <- function(qr, qraux, exprs, subset, get_coefs) {
+    base::.Call(
+      "_scran_fit_linear_model",
+      PACKAGE = "scran",
+      qr, qraux, exprs, subset, get_coefs
+    )
+  }
+  stats <- scran_fit_linear_model(
+    qr = QR$qr,
+    qraux = QR$qraux,
+    exprs = x,
+    subset = subset.row - 1L,
+    get_coefs = TRUE
   )
+
   coefficients <- stats[[1]][order(QR$pivot), , drop = FALSE]
   means <- stats[[2]]
   sigma2 <- stats[[3]]
@@ -204,13 +222,17 @@ findMarkers3 <- function(x, clusters, design = NULL, pval.type = c("any", "all")
     low.out <- .perform_eb_shrinkage(sigma2[!higher],
       covariate = means[!higher], design = full.design
     )
-    eb.out <- mapply(low.out, high.out, FUN = function(low,
-                                                       high) {
-      val <- numeric(length(means))
-      val[higher] <- high
-      val[!higher] <- low
-      val
-    }, SIMPLIFY = FALSE)
+    eb.out <- mapply(
+      low.out,
+      high.out,
+      FUN = function(low, high) {
+        val <- numeric(length(means))
+        val[higher] <- high
+        val[!higher] <- low
+        val
+      },
+      SIMPLIFY = FALSE
+    )
   }
   lfit <- lmFit(rbind(seq_len(nrow(full.design))), full.design)
   output <- vector("list", length(clust.vals))

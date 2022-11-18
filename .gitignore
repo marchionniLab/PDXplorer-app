@@ -27,3 +27,4 @@ packrat.lock
 
 # shiny cache
 *-app-cache
+app/*-app-cache

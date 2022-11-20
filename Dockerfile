@@ -2,10 +2,6 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND noninteractive
 
-# ARG USER=bioinfo
-# ARG UID=1000
-# ENV HOME /home/$USER
-
 RUN apt-get update --yes \
   && apt-get install --yes --no-install-recommends \
   wget \
@@ -14,7 +10,7 @@ RUN apt-get update --yes \
   gpg
 
 # R Package dependencies
-RUN apt-get install --yes \
+RUN apt-get install --yes --no-install-recommends \
   git \
   libgmp3-dev \
   default-jdk \
@@ -22,12 +18,14 @@ RUN apt-get install --yes \
   libcurl4-openssl-dev \
   libicu-dev \
   libssl-dev \
-  pandoc \
   libpng-dev \
   libjpeg-dev \
   libxml2-dev \
   libglpk-dev \
-  zlib1g-dev
+  zlib1g-dev \
+  libcairo2-dev \
+  sudo \
+  pandoc
 
 ENV TZ UTC
 
@@ -44,12 +42,20 @@ RUN export _RIG_VERSION=0.5.2 \
 RUN rig add release
 
 RUN addgroup --system app \
-    && adduser --system --ingroup app app
+    && adduser --disabled-password \
+    --gecos "" \
+    --system \
+    --ingroup app \
+    app \
+    && adduser app sudo
+
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+RUN chown app:app -R /home/app
 
 USER app
 
 ENV TZ UTC
-
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 
@@ -73,13 +79,13 @@ RUN R -q -s -e \
   "dplyr", \
   "tidyr", \
   "readr", \
-  "DESeq2", \
+  "bioc::DESeq2", \
   "ggdendro", \
   "ggplot2", \
   "grid", \
   "gridExtra", \
   "github::luciorq/ABCutilities", \
-  "limma", \
+  "bioc::limma", \
   "magrittr", \
   "rhino", \
   "DT", \
@@ -91,8 +97,8 @@ RUN R -q -s -e \
   "systemPipeR", \
   "EnhancedVolcano", \
   "pheatmap", \
-  "chimeraviz", \
   "RColorBrewer" \
+  "chimeraviz", \
   ),upgrade=TRUE,ask=FALSE);'
 
 USER root
@@ -101,8 +107,6 @@ RUN rm -rf /tmp/downloaded_packages/ \
   && rm -rf /tmp/*.rds \
   && rm -rf /var/lib/apt/lists/* \
   && rm -rf /data
-
-RUN chown app:app -R /home/app
 
 USER app
 

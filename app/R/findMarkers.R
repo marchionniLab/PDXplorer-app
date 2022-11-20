@@ -25,8 +25,10 @@ library(DESeq2)
 
 .perform_eb_shrinkage <- function(sigma2, covariate, design) {
   df.residual <- rep(nrow(design) - ncol(design), length(covariate))
-  eb.out <- limma::squeezeVar(sigma2,
-    df = df.residual, robust = TRUE,
+  eb.out <- limma::squeezeVar(
+    sigma2,
+    df = df.residual,
+    robust = TRUE,
     covariate = covariate
   )
   df.total <- df.residual + eb.out$df.prior
@@ -179,33 +181,14 @@ findMarkers3 <- function(x,
   direction <- match.arg(direction)
   subset.row <- .subset_to_index(subset.row, x, byrow = TRUE)
   QR <- .ranksafe_qr(full.design)
-  # TODO: @luciorq Newer versions of scran removed manual .Call in favor of functions
-  # + from commit f19ff3efa356760164e6b3279378fb70a56845d7
-  # + https://github.com/MarioniLab/scran/commit/f19ff3efa356760164e6b3279378fb70a56845d7
-  # + use :
-  # + fit_linear_model <- function(qr, qraux, exprs, subset, get_coefs) {
-  #   .Call('_scran_fit_linear_model', PACKAGE = 'scran', qr, qraux, exprs, subset, get_coefs)
-  # }
 
-  # stats <- .Call(
-  #  scran:::cxx_fit_linear_model, QR$qr, QR$qraux,
-  #  x, subset.row - 1L, TRUE
-  # )
-  scran_fit_linear_model <- function(qr, qraux, exprs, subset, get_coefs) {
-    base::.Call(
-      "_scran_fit_linear_model",
-      PACKAGE = "scran",
-      qr, qraux, exprs, subset, get_coefs
-    )
-  }
-  stats <- scran_fit_linear_model(
+  stats <- ABCutilities:::fit_linear_model(
     qr = QR$qr,
     qraux = QR$qraux,
     exprs = x,
     subset = subset.row - 1L,
     get_coefs = TRUE
   )
-
   coefficients <- stats[[1]][order(QR$pivot), , drop = FALSE]
   means <- stats[[2]]
   sigma2 <- stats[[3]]

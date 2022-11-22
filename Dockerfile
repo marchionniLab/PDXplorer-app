@@ -70,35 +70,34 @@ RUN R -q -s -e \
   pak::pkg_install(pkg=c( \
   "shiny", \
   "shinydashboard", \
+  "shinyjs", \
+  "shinythemes", \
   "bslib", \
+  "rhino", \
   "cachem", \
-  "github::statistikat/codeModules", \
   "data.table", \
   "reshape2", \
   "fs", \
   "dplyr", \
   "tidyr", \
   "readr", \
-  "bioc::DESeq2", \
   "ggdendro", \
   "ggplot2", \
   "grid", \
   "gridExtra", \
-  "github::luciorq/ABCutilities", \
-  "bioc::limma", \
-  "magrittr", \
-  "rhino", \
   "DT", \
   "scales", \
-  "scran", \
-  "shiny", \
-  "shinyjs", \
-  "shinythemes", \
-  "systemPipeR", \
-  "EnhancedVolcano", \
   "pheatmap", \
-  "RColorBrewer" \
-  "chimeraviz", \
+  "RColorBrewer", \
+  "bioc::maftools", \
+  "bioc::limma", \
+  "bioc::DESeq2", \
+  "bioc::scran", \
+  "bioc::systemPipeR", \
+  "bioc::EnhancedVolcano", \
+  "bioc::chimeraviz", \
+  "github::statistikat/codeModules", \
+  "github::luciorq/ABCutilities" \
   ),upgrade=TRUE,ask=FALSE);'
 
 USER root

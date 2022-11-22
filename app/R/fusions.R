@@ -15,12 +15,18 @@ importStarfusion2 <- function(filename, genomeVersion, limit) {
     {
       col_types_starfusion <- readr::cols_only(
         `#FusionName` = col_skip(),
-        JunctionReadCount = col_integer(), SpanningFragCount = col_integer(),
-        SpliceType = col_skip(), LeftGene = col_character(),
-        LeftBreakpoint = col_character(), RightGene = col_character(),
-        RightBreakpoint = col_character(), LargeAnchorSupport = col_character(),
-        LeftBreakDinuc = col_character(), LeftBreakEntropy = col_number(),
-        RightBreakDinuc = col_character(), RightBreakEntropy = col_number()
+        JunctionReadCount = col_integer(),
+        SpanningFragCount = col_integer(),
+        SpliceType = col_skip(),
+        LeftGene = col_character(),
+        LeftBreakpoint = col_character(),
+        RightGene = col_character(),
+        RightBreakpoint = col_character(),
+        LargeAnchorSupport = col_character(),
+        LeftBreakDinuc = col_character(),
+        LeftBreakEntropy = col_number(),
+        RightBreakDinuc = col_character(),
+        RightBreakEntropy = col_number()
       )
       if (missing(limit)) {
         readr::read_tsv(file = filename, col_types = col_types_starfusion)
@@ -101,22 +107,35 @@ importStarfusion2 <- function(filename, genomeVersion, limit) {
     ensemblIdA <- NA_character_
     ensemblIdB <- NA_character_
     geneA <- new(
-      Class = "PartnerGene", name = nameA, ensemblId = ensemblIdA,
-      chromosome = chromosomeA, breakpoint = breakpointA,
-      strand = strandA, junctionSequence = junctionSequenceA,
+      Class = "PartnerGene",
+      name = nameA,
+      ensemblId = ensemblIdA,
+      chromosome = chromosomeA,
+      breakpoint = breakpointA,
+      strand = strandA,
+      junctionSequence = junctionSequenceA,
       transcripts = GenomicRanges::GRangesList()
     )
     geneB <- new(
-      Class = "PartnerGene", name = nameB, ensemblId = ensemblIdB,
-      chromosome = chromosomeB, breakpoint = breakpointB,
-      strand = strandB, junctionSequence = junctionSequenceB,
+      Class = "PartnerGene",
+      name = nameB,
+      ensemblId = ensemblIdB,
+      chromosome = chromosomeB,
+      breakpoint = breakpointB,
+      strand = strandB,
+      junctionSequence = junctionSequenceB,
       transcripts = GenomicRanges::GRangesList()
     )
     fusionList[[i]] <- new(
-      Class = "Fusion", id = id, fusionTool = fusionTool,
-      genomeVersion = genomeVersion, spanningReadsCount = spanningReadsCount,
-      splitReadsCount = splitReadsCount, fusionReadsAlignment = Gviz::AlignmentsTrack(),
-      geneA = geneA, geneB = geneB, inframe = inframe,
+      Class = "Fusion",
+      id = id, fusionTool = fusionTool,
+      genomeVersion = genomeVersion,
+      spanningReadsCount = spanningReadsCount,
+      splitReadsCount = splitReadsCount,
+      fusionReadsAlignment = Gviz::AlignmentsTrack(),
+      geneA = geneA,
+      geneB = geneB,
+      inframe = inframe,
       fusionToolSpecificData = fusionToolSpecificData
     )
   }

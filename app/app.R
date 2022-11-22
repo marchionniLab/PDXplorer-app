@@ -192,12 +192,12 @@ server <- function(input, output, session) {
         return()
       }
 
-      # TODO: @luciorq Use `ShinyCSSLoaders` while waiting for modules
+      # TODO: @luciorq Use `ShinyCSSLoaders` while waiting for modules & Plots
       withProgress(message = "Loading dataset", {
         incProgress(0, detail = "This may take a while...")
 
         # TODO: @luciorq Move data (RDS) to a database or .parquet files
-        dds$dds <- readRDS("../data/dds_all_nov2022.rds")
+        dds$dds <- readr::read_rds("../data/dds_all_nov2022.rds")
         colData(dds$dds)$sampleName <- make.names(
           as.character(colData(dds$dds)$sampleName)
         )
@@ -248,7 +248,7 @@ server <- function(input, output, session) {
         incProgress(1 / 7)
 
         # Fusion explorer
-        dds$fusions <- readRDS("../data/fusions_2019.RDS")
+        dds$fusions <- readRDS("../data/fusions_nov2022.rds")
         dds$fusions$summary$sample <- make.names(dds$fusions$summary$sample)
         dds$fusions$list$sample <- make.names(dds$fusions$list$sample)
         callModule(
@@ -260,8 +260,8 @@ server <- function(input, output, session) {
         incProgress(1 / 7)
 
         # ssGSEA
-        dds$gsva <- readRDS("../data/gsva.RDS")
-        dds$ssgsea <- readRDS("../data/ssgsea.RDS")
+        dds$gsva <- readr::read_rds("../data/gsva_nov2022.rds")
+        dds$ssgsea <- readr::read_rds("../data/ssgsea_nov2022.rds")
         callModule(
           gseaMod,
           "gsea",
@@ -273,9 +273,11 @@ server <- function(input, output, session) {
         incProgress(1 / 7)
 
         # Differential genes
-        dds$fit <- readRDS("../data/fit_all_march2021.RDS")
-        dds$fit_pdx <- readRDS("../data/fit_pdxOnly_march2021.RDS")
-        dds$fit_primary <- readRDS("../data/fit_primaryOnly_march2021.RDS")
+        dds$fit <- readr::read_rds("../data/fit_all_nov2022.rds")
+        dds$fit_pdx <- readr::read_rds("../data/fit_pdx_only_nov2022.rds")
+        dds$fit_primary <- readr::read_rds(
+          "../data/fit_primary_only_nov2022.rds"
+        )
 
         callModule(
           diffMod,

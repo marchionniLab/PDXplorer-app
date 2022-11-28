@@ -33,7 +33,6 @@ colnames(sample_annot)
 unique(sample_annot$patient)
 sum(sort(table(sample_annot$patient)))
 
-# Replace "patient" column with "sample"
 levels(sample_annot$type)
 for (i in seq_along(sample_cols)) {
   if (isTRUE(is.factor(sample_annot[[i]]))) {
@@ -44,6 +43,14 @@ y@colData <- sample_annot
 y |>
   readr::write_rds("data/dds_all_nov2022.rds")
 rm(x, y, i)
+# Replace "patient" column with "sample_origin"
+x <- readr::read_rds("data/dds_all_nov2022.rds")
+vars_vector <- colnames(x@colData)
+vars_vector[vars_vector == "patient"] <- "sample_origin"
+vars_vector[vars_vector == "sampleName"] <- "sample_name"
+colnames(x@colData) <- vars_vector
+x |>
+  readr::write_rds("data/dds_all_nov2022.rds")
 
 # -----------------------------------------------------------------------------
 # LM Fit object ALL
@@ -114,3 +121,24 @@ rm(x)
 # + "data/msigdb/*"
 # TODO: @luciorq Update msigdb, maybe use the R package to download the gmt
 fs::dir_ls("data/msigdb/")
+
+# -----------------------------------------------------------------------------
+# Create User Database
+credentials_data <- data.frame(
+  user = c("reviewer", "wcm"),
+  password = c(
+    config::get("rev_pw"),
+    config::get("wcm_pw")
+  ),
+  admin = c(FALSE, TRUE),
+  stringsAsFactors = FALSE
+)
+
+shinymanager::create_db(
+  credentials_data = credentials_data,
+  sqlite_path = "data/userdb.sqlite",
+  passphrase = config::get(
+    value = "userdb",
+    file = fs::path("data", "config.yml")
+  )
+)

@@ -483,7 +483,7 @@ diffMod <- function(input, output, session, dds = dds, metadata, fit = fit, fit_
   updateSelectizeInput(session, "multi_gene_symbol", choices = c(row.names(dds)), selected = NULL, server = TRUE)
   updateSelectInput(session, "group_by", choices = c("type"), selected = "type")
   updateSelectInput(session, "column_annotation", choices = c("", names(metadata)), selected = "type")
-  updateSelectInput(session, "remove_batch_effect", choices = c("none", "source", "batch", "patient", "purity"), selected = NULL)
+  updateSelectInput(session, "remove_batch_effect", choices = c("none", "source", "batch", "sample_origin", "purity"), selected = NULL)
   updateSelectInput(session, "comp_a", choices = make.names(levels(dds$type_design)), selected = make.names(levels(dds$type_design))[1])
   updateSelectInput(session, "comp_b", choices = make.names(levels(dds$type_design)), selected = make.names(levels(dds$type_design))[2])
   updateSelectInput(session, "col", choices = colors(), selected = c("goldenrod1", "black", "tomato2", "maroon4"))

@@ -266,20 +266,25 @@ geOutput <- function(id) {
 
 
 geMod <- function(input, output, session, dds = dds, metadata) {
-  updateSelectizeInput(session, "gene_symbol", choices = c(row.names(dds)), selected = row.names(dds[1, ]), server = TRUE)
-  updateSelectizeInput(session, "multi_gene_symbol", choices = c(row.names(dds)), selected = NULL, server = TRUE)
-  updateSelectInput(session, "group_by", choices = c("", names(metadata), "gene"), selected = "type")
-  updateSelectInput(session, "color_by", choices = c("", names(metadata), "gene"), selected = "type")
-  updateSelectInput(session, "select_samples_by", choices = c(names(metadata)), selected = "type")
-  updateSelectInput(session, "facet_by_row", choices = c(none = ".", names(metadata), "gene"), selected = ".")
-  updateSelectInput(session, "facet_by_col", choices = c(none = ".", names(metadata), "gene"), selected = ".")
-  updateSelectInput(session, "include_samples", choices = c("", row.names(metadata)), selected = NULL)
-  updateSelectInput(session, "column_annotation", choices = c("", names(metadata)), selected = "type")
-  updateSelectInput(session, "remove_batch_effect", choices = c("none", "source", "batch", "patient", "purity"), selected = NULL)
+  shiny::updateSelectizeInput(session, "gene_symbol", choices = c(row.names(dds)), selected = row.names(dds[1, ]), server = TRUE)
+  shiny::updateSelectizeInput(session, "multi_gene_symbol", choices = c(row.names(dds)), selected = NULL, server = TRUE)
+  shiny::updateSelectInput(session, "group_by", choices = c("", names(metadata), "gene"), selected = "type")
+  shiny::updateSelectInput(session, "color_by", choices = c("", names(metadata), "gene"), selected = "type")
+  shiny::updateSelectInput(session, "select_samples_by", choices = c(names(metadata)), selected = "type")
+  shiny::updateSelectInput(session, "facet_by_row", choices = c(none = ".", names(metadata), "gene"), selected = ".")
+  shiny::updateSelectInput(session, "facet_by_col", choices = c(none = ".", names(metadata), "gene"), selected = ".")
+  shiny::updateSelectInput(session, "include_samples", choices = c("", row.names(metadata)), selected = NULL)
+  shiny::updateSelectInput(session, "column_annotation", choices = c("", names(metadata)), selected = "type")
+  shiny::updateSelectInput(
+    session = session,
+    inputId = "remove_batch_effect",
+    choices = c("none", "source", "batch", "sample_origin", "purity"),
+    selected = NULL
+  )
 
 
 
-  observeEvent(input$tabs, {
+  shiny::observeEvent(input$tabs, {
     if (input$tabs == "Boxplots") {
       shinyjs::hide("multi_gene_symbol")
       shinyjs::show("gene_symbol")
@@ -308,8 +313,14 @@ geMod <- function(input, output, session, dds = dds, metadata) {
     }
   })
 
-  mydds <- reactiveValues(retain_samples = NULL, remove_samples = NULL, include_samples = NULL, final_list_samples_to_include = NULL, from_paste = NULL)
-  timer <- reactive(list(
+  mydds <- shiny::reactiveValues(
+    retain_samples = NULL,
+    remove_samples = NULL,
+    include_samples = NULL,
+    final_list_samples_to_include = NULL,
+    from_paste = NULL
+  )
+  timer <- shiny::reactive(list(
     final_list_samples_to_include = mydds$final_list_samples_to_include,
     retain_samples = mydds$retain_samples,
     include_samples = mydds$include_samples,
@@ -325,10 +336,22 @@ geMod <- function(input, output, session, dds = dds, metadata) {
     ignoreInit = FALSE
   )
   observeEvent(input$select_all, {
-    updateCheckboxGroupInput(session, "selected_samples", choices = unique(metadata[[input$select_samples_by]]), selected = unique(metadata[[input$select_samples_by]]), inline = TRUE)
+    updateCheckboxGroupInput(
+      session,
+      "selected_samples",
+      choices = unique(metadata[[input$select_samples_by]]),
+      selected = unique(metadata[[input$select_samples_by]]),
+      inline = TRUE
+    )
   })
   observeEvent(input$deselect_all, {
-    updateCheckboxGroupInput(session, "selected_samples", choices = unique(metadata[[input$select_samples_by]]), selected = NULL, inline = TRUE)
+    updateCheckboxGroupInput(
+      session,
+      "selected_samples",
+      choices = unique(metadata[[input$select_samples_by]]),
+      selected = NULL,
+      inline = TRUE
+    )
   })
   observeEvent(input$selected_samples,
     {
@@ -339,12 +362,27 @@ geMod <- function(input, output, session, dds = dds, metadata) {
       columns_unselected <- setdiff(unique(metadata[[selected_column]]), selected_groups)
       rest_of_samples <- row.names(metadata[metadata[[selected_column]] %in% columns_unselected, ])
       if (length(input$selected_samples) > 0) {
-        updateSelectInput(session, "remove_samples", choices = c(retain_samples), selected = input$remove_samples)
-        updateSelectInput(session, "include_samples", choices = c(rest_of_samples), selected = input$include_samples)
+        updateSelectInput(
+          session,
+          "remove_samples",
+          choices = c(retain_samples),
+          selected = input$remove_samples
+        )
+        updateSelectInput(
+          session,
+          "include_samples",
+          choices = c(rest_of_samples),
+          selected = input$include_samples
+        )
         mydds$retain_samples <- retain_samples
       } else {
         mydds$retain_samples <- NULL
-        updateSelectInput(session, "include_samples", choices = c("", row.names(metadata)), selected = input$include_samples)
+        updateSelectInput(
+          session,
+          "include_samples",
+          choices = c("", row.names(metadata)),
+          selected = input$include_samples
+        )
       }
     },
     ignoreInit = FALSE,
@@ -380,33 +418,36 @@ geMod <- function(input, output, session, dds = dds, metadata) {
 
   gene_data <- reactive({
     shiny::validate(
-      need(length(timer()$retain_samples) > 0 | length(timer()$include_samples) > 0,
+      shiny::need(
+        length(timer()$retain_samples) > 0 | length(timer()$include_samples) > 0,
         message = "Select a sample to get started."
       )
     )
 
     shiny::validate(
-      need(input$gene_symbol != "",
+      shiny::need(
+        input$gene_symbol != "",
         message = "Select a gene to get started."
       )
     )
 
     shiny::validate(
-      need(input$group_by != "",
+      shiny::need(
+        input$group_by != "",
         message = "Select a factor to group samples by."
       )
     )
 
 
-    withProgress(message = "Extracting gene data", {
-      incProgress(0)
+    shiny::withProgress(message = "Extracting gene data", {
+      shiny::incProgress(0)
       object <- dds[, timer()$final_list_samples_to_include]
       #  genedata <- plotCounts(object, gene=input$gene_symbol,intgroup = colnames(colData(object)),returnData = TRUE)
 
 
       genedata <- assay(object[input$gene_symbol, ]) %>% reshape2::melt(., id.vars = rownames)
       names(genedata) <- c("gene", "sample", "count")
-      genedata <- merge(genedata, colData(object), by.x = "sample", by.y = "sampleName")
+      genedata <- merge(genedata, colData(object), by.x = "sample", by.y = "sample_name")
       genedata <- as.data.frame(genedata)
 
 
@@ -482,10 +523,13 @@ geMod <- function(input, output, session, dds = dds, metadata) {
           scale_fill_discrete(name = "Experimental\nconditions")
       }
       if (input$sample_labels == TRUE) {
-        P <- P + geom_text(aes_string(label = "sampleName"), hjust = -.1, vjust = 0)
+        P <- P + geom_text(aes_string(label = "sample_name"), hjust = -.1, vjust = 0)
       }
     } else if (input$plot_style == "violin plot") {
-      P <- ggplot(genedata, aes_string(x = "group", y = "count", fill = input$color_by, linetype = "gene")) +
+      P <- ggplot(
+        genedata,
+        aes_string(x = "group", y = "count", fill = input$color_by, linetype = "gene")
+      ) +
         geom_violin(aes_string(col = "group"), alpha = 0.6) +
         theme_bw(base_size = 14)
       if (input$ylimZero) {
@@ -508,7 +552,7 @@ geMod <- function(input, output, session, dds = dds, metadata) {
       }
 
       if (input$sample_labels) {
-        P <- P + geom_text(aes_string(label = "sampleName"), hjust = -.1, vjust = 0)
+        P <- P + geom_text(aes_string(label = "sample_name"), hjust = -.1, vjust = 0)
       }
     }
 

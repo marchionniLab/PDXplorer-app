@@ -189,7 +189,12 @@ clusterMod <- function(input, output, session, dds, metadata) {
   updateSelectInput(session, "select_samples_by", choices = c(names(metadata)), selected = "type")
   updateSelectInput(session, "column_annotation", choices = c("", names(metadata)), selected = "type")
   updateSelectInput(session, "include_samples", choices = c("", row.names(metadata)), selected = NULL)
-  updateSelectInput(session, "remove_batch_effect", choices = c("none", "source", "batch", "patient", "purity"), selected = NULL)
+  updateSelectInput(
+    session,
+    "remove_batch_effect",
+    choices = c("none", "source", "batch", "sample_origin", "purity"),
+    selected = NULL
+  )
   observeEvent(input$tabs, {
     if (input$tabs == "Dendrogram") {
       shinyjs::hide("dist_method")
@@ -363,10 +368,19 @@ clusterMod <- function(input, output, session, dds, metadata) {
 
 
     if (input$sample_labels) {
-      P <- P + geom_text(data = labs, angle = 90, hjust = 1, size = rel(input$label_size), aes_string(label = "label", x = "x", y = -(ymax / 40), colour = colorby), show.legend = F)
+      P <- P +
+        geom_text(
+          data = labs,
+          aes_string(label = "label", x = "x", y = -(ymax / 40), colour = colorby),
+          angle = 90,
+          hjust = 1,
+          size = rel(input$label_size),
+          show.legend = FALSE
+        )
     }
 
-    P <- P + ggdendro::theme_dendro() + ylim(-(total_axis_size * labelspace), ymax) #+ scale_color_manual(name = "patient", values = palette)
+    P <- P + ggdendro::theme_dendro() +
+      ylim(-(total_axis_size * labelspace), ymax) #+ scale_color_manual(name = "sample_origin", values = palette)
 
     if (input$shape_by != "none") {
       shapes <- rep(15:20, 10)[1:length(unique(labs[[shapeby]]))]
@@ -374,20 +388,37 @@ clusterMod <- function(input, output, session, dds, metadata) {
       shapes <- 1
     }
 
-    P <- P + geom_point(data = labs, aes_string(x = "x", y = 0, colour = colorby, shape = shapeby), size = 2.5) + scale_shape_manual(values = shapes, name = shapeby) + theme(title = element_text(size = rel(1)), legend.text = element_text(size = rel(1)))
-    P <- P + ggtitle(input$title) + theme(plot.title = element_text(size = 16), legend.position = input$legend_position)
+    P <- P +
+      geom_point(
+        data = labs,
+        aes_string(x = "x", y = 0, colour = colorby, shape = shapeby),
+        size = 2.5
+      ) +
+      scale_shape_manual(values = shapes, name = shapeby) +
+      theme(
+        title = element_text(size = rel(1)),
+        legend.text = element_text(size = rel(1))
+      )
+    P <- P +
+      ggtitle(input$title) +
+      theme(
+        plot.title = element_text(size = 16),
+        legend.position = input$legend_position
+      )
 
     if (input$color_palette != "ggplot" & input$color_by != "none") {
-      P <- P + scale_color_manual(values = color_set)
+      P <- P +
+        scale_color_manual(values = color_set)
     }
 
     P
   }
 
-  output$dendro_dist <- renderCachedPlot(
+  output$dendro_dist <- shiny::renderCachedPlot(
     {
       shiny::validate(
-        need(length(timer()$final_list_samples_to_include) > 1,
+        shiny::need(
+          length(timer()$final_list_samples_to_include) > 1,
           message = "Select at least two samples to get started."
         )
       )

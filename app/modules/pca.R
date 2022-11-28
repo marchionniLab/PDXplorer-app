@@ -163,7 +163,12 @@ pcaMod <- function(input, output, session, dds, metadata) {
   updateSelectInput(session, "remove_samples", choices = c("", colnames(dds)), selected = "")
   updateSelectInput(session, "select_samples_by", choices = c(names(metadata)), selected = "type")
   updateSelectInput(session, "include_samples", choices = c("", row.names(metadata)), selected = NULL)
-  updateSelectInput(session, "remove_batch_effect", choices = c("none", "source", "batch", "patient", "purity"), selected = NULL)
+  updateSelectInput(
+    session,
+    "remove_batch_effect",
+    choices = c("none", "source", "batch", "sample_origin", "purity"),
+    selected = NULL
+  )
 
 
   mydds <- reactiveValues(retain_samples = NULL, remove_samples = NULL, include_samples = NULL, final_list_samples_to_include = NULL)
@@ -320,7 +325,7 @@ pcaMod <- function(input, output, session, dds, metadata) {
 
     # add labels if wanted
     if (input$sample_labels == TRUE) {
-      p <- p + ggrepel::geom_label_repel(aes(label = sampleName, fill = NULL))
+      p <- p + ggrepel::geom_label_repel(aes(label = sample_name, fill = NULL))
     }
 
     # add title
@@ -382,7 +387,7 @@ pcaMod <- function(input, output, session, dds, metadata) {
   #
   #     # add labels if wanted
   #     if(input$sample_labels == TRUE){
-  #       p <- p + ggrepel::geom_label_repel(aes(label=sampleName, fill = NULL))
+  #       p <- p + ggrepel::geom_label_repel(aes(label=sample_name, fill = NULL))
   #     }
   #
   #     # add title

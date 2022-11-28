@@ -159,7 +159,7 @@ pcaMod <- function(input, output, session, dds, metadata) {
   updateSelectInput(session, "remove_samples", choices = c("", colnames(dds)), selected = "")
   updateSelectInput(session, "select_samples_by", choices = c(names(metadata)), selected = "TCL.subtype")
   updateSelectInput(session, "include_samples", choices = c("", row.names(metadata)), selected = NULL)
-  updateSelectInput(session, "remove_batch_effect", choices = c("none", "source", "batch", "patient", "purity"), selected = NULL)
+  updateSelectInput(session, "remove_batch_effect", choices = c("none", "source", "batch", "sample_origin", "purity"), selected = NULL)
 
 
   #  pcaOut <- reactiveValues(dds = NULL, pca_mat = NULL, pcres = NULL, pccoords = NULL)

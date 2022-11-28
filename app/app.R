@@ -217,8 +217,8 @@ server <- function(input, output, session) {
 
             # TODO: @luciorq Move data (RDS) to a database or .parquet files
             dds$dds <- readr::read_rds("../data/dds_all_nov2022.rds")
-            colData(dds$dds)$sampleName <- make.names(
-              as.character(colData(dds$dds)$sampleName)
+            colData(dds$dds)$sample_name <- make.names(
+              as.character(colData(dds$dds)$sample_name)
             )
             colData(dds$dds)$type_source <- paste0(
               colData(dds$dds)$type, "_", colData(dds$dds)$source
@@ -226,7 +226,7 @@ server <- function(input, output, session) {
             # dds$dds$type_design <- make.names(dds$dds$type_design)
             dds$metadata <- data.frame(
               colData(dds$dds)
-            )[, c("patient", "passage", "source", "type", "purity"), ]
+            )[, c("sample_origin", "passage", "source", "type", "purity"), ]
             dds$metadata$type_source <- paste0(
               dds$metadata$type, "_", dds$metadata$source
             )

@@ -241,7 +241,7 @@ gseaMod <- function(input,
   updateSelectInput(
     session,
     "remove_batch_effect",
-    choices = c("none", "source", "batch", "patient", "purity"),
+    choices = c("none", "source", "batch", "sample_origin", "purity"),
     selected = NULL
   )
 
@@ -250,7 +250,8 @@ gseaMod <- function(input,
   observeEvent(input$select_samples_by,
     {
       updateCheckboxGroupInput(
-        session, "selected_samples",
+        session,
+        "selected_samples",
         choices = unique(metadata[[input$select_samples_by]]),
         selected = input$selected_samples,
         inline = TRUE

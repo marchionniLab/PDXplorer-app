@@ -1,42 +1,42 @@
 
 fusionInput <- function(id) {
-  ns <- NS(id)
+  ns <- shiny::NS(id)
 
-  title <- textInput(
-    ns("title"),
+  title <- shiny::textInput(
+    inputId = ns("title"),
     label = "Plot title",
     value = "Number of fusions detected"
   )
 
-  facet_by_row <- selectInput(
+  facet_by_row <- shiny::selectInput(
     inputId = ns("facet_by_row"),
     label = "Facet plot row-wise by",
     choices = NULL,
     selected = NULL
   )
 
-  facet_by_col <- selectInput(
+  facet_by_col <- shiny::selectInput(
     inputId = ns("facet_by_col"),
     label = "Facet plot column-wise by",
     choices = NULL,
     selected = NULL
   )
 
-  select_samples_by <- selectInput(
+  select_samples_by <- shiny::selectInput(
     inputId = ns("select_samples_by"),
     label = "Select samples by",
     choices = NULL,
     selected = NULL
   )
 
-  selected_samples <- checkboxGroupInput(
+  selected_samples <- shiny::checkboxGroupInput(
     inputId = ns("selected_samples"),
     label = "",
     choices = NULL,
     selected = NULL
   )
 
-  selected_fusion <- selectizeInput(
+  selected_fusion <- shiny::selectizeInput(
     inputId = ns("selected_fusion"),
     label = "Display samples with selected fusion:",
     choices = NULL,
@@ -44,31 +44,34 @@ fusionInput <- function(id) {
     multiple = TRUE
   )
 
-  select_all <- actionLink(ns("select_all"), "Select all boxes")
+  select_all <- shiny::actionLink(
+    inputId = ns("select_all"),
+    label = "Select all boxes"
+  )
 
-  remove_samples <- selectInput(
+  remove_samples <- shiny::selectInput(
     ns("remove_samples"),
     label = "Remove sample by name:",
     choices = NULL, selected = NULL, multiple = TRUE
   )
 
-  include_samples <- selectInput(
-    ns("include_samples"),
+  include_samples <- shiny::selectInput(
+    inputId = ns("include_samples"),
     label = "Include sample by name:",
     choices = NULL, selected = NULL, multiple = TRUE
   )
 
-  set_size <- numericInput(
-    ns("set_size"),
+  set_size <- shiny::numericInput(
+    inputId = ns("set_size"),
     label = "Show sets with at least n members:",
     min = 1, max = 100, value = 5
   )
 
-  tagList(
+  htmltools::tagList(
     title,
     facet_by_row,
     facet_by_col,
-    hr(),
+    htmltools::hr(),
     uiOutput(ns("ui_header")),
     #   h5("Include / exclude samples"),
     select_samples_by,
@@ -77,7 +80,7 @@ fusionInput <- function(id) {
     remove_samples,
     include_samples,
     set_size,
-    hr(),
+    htmltools::hr(),
     selected_fusion
   )
 }
@@ -85,12 +88,12 @@ fusionInput <- function(id) {
 fusionOutput <- function(id) {
   ns <- NS(id)
 
-  tagList(
+  htmltools::tagList(
 
     ## cluster
-    tabsetPanel(
+    shiny::tabsetPanel(
       id = ns("tabs"),
-      tabPanel(
+      shiny::tabPanel(
         "Summary",
         shinydashboard::box(
           width = 12, title = "Overview",
@@ -116,7 +119,8 @@ fusionOutput <- function(id) {
             #                      selected = NULL,multiple = FALSE)),
             column(
               width = 3,
-              selectInput(ns("color_palette"),
+              shiny::selectInput(
+                inputId = ns("color_palette"),
                 label = "Select color palette:",
                 choices = c(names(ggsci_db)[-1]),
                 selected = "npg", multiple = FALSE
@@ -125,15 +129,26 @@ fusionOutput <- function(id) {
             column(
               width = 3,
               selectInput(ns("legend_position"),
-                label = "Legend position:", choices = c("bottom", "top", "right", "left", "none" = "none"),
-                selected = "bottom", multiple = FALSE
+                label = "Legend position:",
+                choices = c(
+                  "bottom", "top", "right", "left",
+                  "none" = "none"
+                ),
+                selected = "bottom",
+                multiple = FALSE
               )
             )
             # column(width = 3,
             #        selectInput(ns('color_label_by'), label = 'Color label by:', choices = NULL,
             #                    selected = NULL,multiple = FALSE))
           ),
-          plotOutput(ns("overview"), height = "1000px", click = clickOpts(id = ns("plot_click"))),
+          shiny::plotOutput(
+            outputId = ns("overview"),
+            height = "1000px",
+            click = shiny::clickOpts(
+              id = ns("plot_click")
+            )
+          ),
           #     verbatimTextOutput(ns("click_info")),
           collapsible = FALSE
         )
@@ -142,7 +157,10 @@ fusionOutput <- function(id) {
         "Tables",
         shinydashboard::box(
           title = "Tables", width = 12,
-          DT::dataTableOutput(ns("fusion_table"), height = "1000px"),
+          DT::dataTableOutput(
+            outputId = ns("fusion_table"),
+            height = "1000px"
+          ),
           collapsible = FALSE
         )
       ),
@@ -188,20 +206,56 @@ fusionOutput <- function(id) {
 
 ## SERVER ######################################################################
 fusionMod <- function(input, output, session, fusions, metadata) {
-  updateSelectInput(session, "remove_samples", choices = c("", row.names(metadata)), selected = "")
-  updateSelectInput(session, "select_samples_by", choices = c(names(metadata)), selected = "type")
-  updateSelectInput(session, "columun_annotation", choices = c("", names(metadata)), selected = "")
-  updateSelectInput(session, "include_samples", choices = c("", row.names(metadata)), selected = NULL)
-  updateSelectInput(session, "facet_by_row", choices = c(none = ".", names(metadata)), selected = ".")
-  updateSelectInput(session, "facet_by_col", choices = c(none = ".", names(metadata)), selected = ".")
+  updateSelectInput(
+    session,
+    "remove_samples",
+    choices = c("", row.names(metadata)),
+    selected = ""
+  )
+  updateSelectInput(
+    session,
+    "select_samples_by",
+    choices = c(names(metadata)),
+    selected = "type"
+  )
+  updateSelectInput(
+    session,
+    "columun_annotation",
+    choices = c("", names(metadata)),
+    selected = ""
+  )
+  updateSelectInput(
+    session,
+    "include_samples",
+    choices = c("", row.names(metadata)),
+    selected = NULL
+  )
+  updateSelectInput(
+    session,
+    "facet_by_row",
+    choices = c(none = ".", names(metadata)),
+    selected = "."
+  )
+  updateSelectInput(
+    session,
+    "facet_by_col",
+    choices = c(none = ".", names(metadata)),
+    selected = "."
+  )
 
-  data <- reactiveValues(data = NULL, retain_samples = NULL, remove_samples = NULL, include_samples = NULL, redraw = TRUE)
+  data <- reactiveValues(
+    data = NULL,
+    retain_samples = NULL,
+    remove_samples = NULL,
+    include_samples = NULL,
+    redraw = TRUE
+  )
 
   hideTab(inputId = "inter_tabs", target = "empty")
 
   observeEvent(input$tabs, {
     if (input$tabs == "Summary") {
-      output$ui_header <- renderUI({
+      output$ui_header <- shiny::renderUI({
         h5("Include / exclude samples")
       })
       shinyjs::enable("selected_samples")
@@ -261,20 +315,25 @@ fusionMod <- function(input, output, session, fusions, metadata) {
     }
   })
 
-  observeEvent(input$select_samples_by,
-    {
+  shiny::observeEvent(
+    eventExpr = input$select_samples_by,
+    handlerExpr = {
       updateCheckboxGroupInput(session, "selected_samples", choices = unique(metadata[[input$select_samples_by]]), selected = NULL, inline = TRUE)
     },
     ignoreInit = FALSE
   )
 
 
-  observeEvent(input$select_all, {
-    updateCheckboxGroupInput(session, "selected_samples", choices = unique(metadata[[input$select_samples_by]]), selected = unique(metadata[[input$select_samples_by]]), inline = TRUE)
-  })
+  shiny::observeEvent(
+    eventExpr = input$select_all,
+    handlerExpr = {
+      updateCheckboxGroupInput(session, "selected_samples", choices = unique(metadata[[input$select_samples_by]]), selected = unique(metadata[[input$select_samples_by]]), inline = TRUE)
+    }
+  )
 
-  observeEvent(input$selected_samples,
-    {
+  shiny::observeEvent(
+    eventExpr = input$selected_samples,
+    handlerExpr = {
       selected_column <- input$select_samples_by
       selected_groups <- input$selected_samples
       retain_samples <- row.names(metadata[metadata[[selected_column]] %in% selected_groups, ])
@@ -282,19 +341,35 @@ fusionMod <- function(input, output, session, fusions, metadata) {
       rest_of_samples <- row.names(metadata[metadata[[selected_column]] %in% columns_unselected, ])
       if (length(input$selected_samples) > 0) {
         data$retain_samples <- retain_samples
-        updateSelectInput(session, "remove_samples", choices = c(retain_samples), selected = input$remove_samples)
-        updateSelectInput(session, "include_samples", choices = c(rest_of_samples), selected = input$include_samples)
+        shiny::updateSelectInput(
+          session = session,
+          inputId = "remove_samples",
+          choices = c(retain_samples),
+          selected = input$remove_samples
+        )
+        shiny::updateSelectInput(
+          session = session,
+          inputId = "include_samples",
+          choices = c(rest_of_samples),
+          selected = input$include_samples
+        )
       } else {
         data$retain_samples <- NULL
-        updateSelectInput(session, "include_samples", choices = c("", row.names(metadata)), selected = input$include_samples)
+        shiny::updateSelectInput(
+          session = session,
+          inputId = "include_samples",
+          choices = c("", row.names(metadata)),
+          selected = input$include_samples
+        )
       }
     },
     ignoreInit = FALSE,
     ignoreNULL = FALSE
   )
 
-  observeEvent(input$remove_samples,
-    {
+  shiny::observeEvent(
+    eventExpr = input$remove_samples,
+    handlerExpr = {
       if (!is.null(input$remove_samples)) {
         outliersamples <- input$remove_samples
         data$remove_samples <- outliersamples
@@ -306,8 +381,9 @@ fusionMod <- function(input, output, session, fusions, metadata) {
     ignoreNULL = FALSE
   )
 
-  observeEvent(input$include_samples,
-    {
+  shiny::observeEvent(
+    eventExpr = input$include_samples,
+    handlerExpr = {
       if (length(input$include_samples) > 0) {
         includesamples <- input$include_samples
         data$include_samples <- includesamples
@@ -319,87 +395,131 @@ fusionMod <- function(input, output, session, fusions, metadata) {
     ignoreNULL = FALSE
   )
 
-  timer <- reactiveValues(
+  timer <- shiny::reactiveValues(
     data = NULL,
     redraw = TRUE
   )
 
-  observe({
+  shiny::observe({
     data$retain_samples
     data$include_samples
     data$remove_samples
     timer$redraw <- FALSE
   })
 
-  observe({
-    invalidateLater(1000, session)
+  shiny::observe({
+    shiny::invalidateLater(1000, session)
     data$retain_samples
     data$include_samples
     data$remove_samples
-    if (isolate(timer$redraw)) {
-      timer$data <- subset(fusions$summary, sample %in% setdiff(unique(c(data$retain_samples, data$include_samples)), data$remove_samples))
+    if (shiny::isolate(timer$redraw)) {
+      timer$data <- subset(
+        fusions$summary,
+        sample %in% setdiff(
+          unique(c(data$retain_samples, data$include_samples)),
+          data$remove_samples
+        )
+      )
     } else {
-      isolate(timer$redraw <- TRUE)
+      shiny::isolate(
+        timer$redraw <- TRUE
+      )
     }
   })
 
-  observe({
-    if (!(length(input$selected_samples) > 0) & !(length(input$include_samples) > 0)) {
+  shiny::observe({
+    if (!(length(input$selected_samples) > 0) && !(length(input$include_samples) > 0)) {
       timer$data <- NULL
     }
   })
 
   ## plot --------------------------------------------
-  output$overview <- renderPlot({
+  output$overview <- shiny::renderPlot({
     shiny::validate(
-      need(nrow(timer$data) > 0,
+      shiny::need(
+        nrow(timer$data) > 0,
         message = "Select samples to get started."
       )
     )
 
     if (length(unique(timer$data$variable)) > length(ggsci_db[[input$color_palette]]$default)) {
-      color_set <- colorRampPalette(ggsci_db[[input$color_palette]]$default)(length(unique(timer$data$variable)))
+      color_set <- grDevices::colorRampPalette(
+        ggsci_db[[input$color_palette]]$default
+      )(length(unique(timer$data$variable)))
     } else {
-      color_set <- as.vector(ggsci_db[[input$color_palette]]$default[1:length(unique(timer$data$variable))])
+      color_set <- as.vector(
+        ggsci_db[[input$color_palette]]$default[1:length(unique(timer$data$variable))]
+      )
     }
 
-    P <- ggplot(timer$data, aes(x = sample, y = value, fill = variable)) +
-      theme_bw(base_size = 10) +
-      theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-      coord_flip() +
-      xlab("") +
-      ylab("") +
-      ggtitle(input$title) +
-      theme(plot.title = element_text(size = 16), legend.position = input$legend_position)
+    P <- ggplot2::ggplot(
+      data = timer$data,
+      mapping = ggplot2::aes(
+        x = sample,
+        y = value,
+        fill = variable
+      )
+    ) +
+      ggplot2::theme_bw(base_size = 10) +
+      ggplot2::theme(
+        axis.text.x = ggplot2::element_text(angle = 90, hjust = 1)
+      ) +
+      ggplot2::coord_flip() +
+      ggplot2::xlab("") +
+      ggplot2::ylab("") +
+      ggplot2::ggtitle(input$title) +
+      ggplot2::theme(
+        plot.title = ggplot2::element_text(size = 16),
+        legend.position = input$legend_position
+      )
 
     if (input$percentage) {
-      P <- P + geom_bar(position = "fill", stat = "identity") + scale_y_continuous(labels = percent_format())
+      P <- P +
+        ggplot2::geom_bar(position = "fill", stat = "identity") +
+        ggplot2::scale_y_continuous(labels = scales::percent_format())
     } else {
-      P <- P + geom_bar(stat = "identity")
+      P <- P +
+        ggplot2::geom_bar(stat = "identity")
     }
 
     if (input$color_palette != "ggplot") {
-      P <- P + scale_fill_manual(values = color_set)
+      P <- P +
+        ggplot2::scale_fill_manual(values = color_set)
     }
 
     facets <- paste(input$facet_by_row, "~", input$facet_by_col)
     if (facets != ". ~ .") {
-      P <- P + facet_grid(facets, scales = "free")
+      P <- P + ggplot2::facet_grid(facets, scales = "free")
     }
 
     if (!input$sample_labels) {
-      P <- P + theme(
-        axis.title.y = element_blank(),
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank()
+      P <- P + ggplot2::theme(
+        axis.title.y = ggplot2::element_blank(),
+        axis.text.y = ggplot2::element_blank(),
+        axis.ticks.y = ggplot2::element_blank()
       )
     }
-
     P
   })
 
-  observe({
-    updateSelectizeInput(session, "selected_fusion", choices = c(unique(subset(fusions$list, sample %in% setdiff(unique(c(data$retain_samples, data$include_samples)), data$remove_samples))$fusion.name)), selected = NULL, server = TRUE)
+  shiny::observe({
+    shiny::updateSelectizeInput(
+      session = session,
+      inputId = "selected_fusion",
+      choices = c(
+        unique(
+          subset(
+            fusions$list,
+            sample %in% setdiff(
+              unique(c(data$retain_samples, data$include_samples)),
+              data$remove_samples
+            )
+          )$fusion.name
+        )
+      ),
+      selected = NULL,
+      server = TRUE
+    )
   })
 
   output$fusion_table <- DT::renderDataTable(
@@ -412,28 +532,35 @@ fusionMod <- function(input, output, session, fusions, metadata) {
     },
     server = TRUE,
     rownames = FALSE,
-    filter = list(position = "top", clear = FALSE),
+    filter = list(
+      position = "top",
+      clear = FALSE
+    ),
     options = list(
       scrollX = TRUE,
-      search = list(regex = TRUE, caseInsensitive = TRUE),
+      search = list(
+        regex = TRUE,
+        caseInsensitive = TRUE
+      ),
       pageLength = 20
     )
   )
   # 'fusion.name' = 9,
 
-  observeEvent(
-    {
+  shiny::observeEvent(
+    eventExpr = {
       shiny::validate(
-        need(input$tabs == "Intersections",
+        shiny::need(
+          input$tabs == "Intersections",
           message = ""
         )
       )
       input$select_samples_by
       input$set_size
     },
-    {
+    handlerExpr = {
       if (input$select_samples_by != "") {
-        withProgress(
+        shiny::withProgress(
           message = "Calculation in progress",
           detail = "This may take a while...",
           value = 0,
@@ -447,17 +574,17 @@ fusionMod <- function(input, output, session, fusions, metadata) {
                   fusions$list[get(input$select_samples_by) == x]$fusion.name
                 }
               )
-              incProgress(2 / 4)
+              shiny::incProgress(2 / 4)
               names(list_of_fusions) <- unique(
                 fusions$list[[input$select_samples_by]]
               )
-              incProgress(1 / 4)
+              shiny::incProgress(1 / 4)
               # TODO: @luciorq Remove as.list around unique if error is not fixed
               vennset <- systemPipeR::overLapper(
-                as.list(list_of_fusions),
+                list_of_fusions,
                 type = "vennsets"
               )
-              incProgress(1 / 4)
+              shiny::incProgress(1 / 4)
               Sys.sleep(0.25)
             }
           }
@@ -469,19 +596,30 @@ fusionMod <- function(input, output, session, fusions, metadata) {
         # https://stackoverflow.com/questions/28003715/caption-in-rendertable-shiny
         lst <- list()
         for (i in 1:max_table) {
-          df <- subset(fusions$list, fusion.name %in% l[[i]])
+          df <- subset(
+            fusions$list,
+            fusion.name %in% l[[i]]
+          )
           lst[[i]] <- as.data.frame(df) # [,-c(3,10,11,12,13)]
         }
 
-        output$inter_tables <- renderUI({
-          plot_output_list <- lapply(1:max_table, function(i) {
-            tablename <- paste("tablename", i, sep = "")
-            tabPanel(
-              names(l[i]),
-              DT::dataTableOutput(session$ns(tablename))
-            )
-          })
-          do.call(tabsetPanel, c(plot_output_list, id = "level"))
+        output$inter_tables <- shiny::renderUI({
+          plot_output_list <- lapply(
+            1:max_table,
+            function(i) {
+              tablename <- paste("tablename", i, sep = "")
+              shiny::tabPanel(
+                names(l[i]),
+                DT::dataTableOutput(
+                  outputId = session$ns(tablename)
+                )
+              )
+            }
+          )
+          do.call(
+            shiny::tabsetPanel,
+            c(plot_output_list, id = "level")
+          )
         })
 
         for (i in 1:max_table) {
@@ -508,19 +646,20 @@ fusionMod <- function(input, output, session, fusions, metadata) {
     ignoreNULL = FALSE
   )
 
-  output$upsetr <- renderPlot({
+  output$upsetr <- shiny::renderPlot({
 
   })
 
   # plot --------------------------------------------
-  output$circos_plot <- renderPlot({
+  output$circos_plot <- shiny::renderPlot({
     shiny::validate(
-      need(nrow(timer$data) > 0,
+      shiny::need(
+        nrow(timer$data) > 0,
         message = "Select samples to get started."
       )
     )
 
-    withProgress(
+    shiny::withProgress(
       message = "Processing",
       detail = "This may take a moment...",
       value = 0,
@@ -539,14 +678,32 @@ fusionMod <- function(input, output, session, fusions, metadata) {
         fus_sub <- fus_sub[, c("Left.genes", "Right.genes", which_method)]
 
         fus_sub <- fus_sub %>%
-          dplyr::mutate(fus = strsplit(as.character(as.character(fus_sub[, grep(which_method, colnames(fus_sub))])), ",")) %>%
+          dplyr::mutate(
+            fus = strsplit(
+              as.character(
+                as.character(
+                  fus_sub[, grep(which_method, colnames(fus_sub))]
+                )
+              ), ","
+            )
+          ) %>%
           tidyr::unnest(fus)
         fus_sub <- fus_sub[, -3]
         fus_sub$reads <- stringr::str_split_fixed(fus_sub$fus, "=", 2)[, 1]
-        fus_sub$chromLeftStart <- as.matrix(stringr::str_split_fixed(fus_sub$fus, "=", 2)[, 2] %>% stringr::str_split_fixed(., "-", 2))[, 1]
-        fus_sub$chromLeft <- stringr::str_split_fixed(fus_sub$chromLeftStart, ":", 2)[, 1]
-        fus_sub$chromRightStart <- as.matrix(stringr::str_split_fixed(fus_sub$fus, "=", 2)[, 2] %>% stringr::str_split_fixed(., "-", 2))[, 2]
-        fus_sub$chromRight <- stringr::str_split_fixed(fus_sub$chromRightStart, ":", 2)[, 1]
+        fus_sub$chromLeftStart <- as.matrix(
+          stringr::str_split_fixed(fus_sub$fus, "=", 2)[, 2] %>%
+            stringr::str_split_fixed(., "-", 2)
+        )[, 1]
+        fus_sub$chromLeft <- stringr::str_split_fixed(
+          fus_sub$chromLeftStart, ":", 2
+        )[, 1]
+        fus_sub$chromRightStart <- as.matrix(
+          stringr::str_split_fixed(fus_sub$fus, "=", 2)[, 2] %>%
+            stringr::str_split_fixed(., "-", 2)
+        )[, 2]
+        fus_sub$chromRight <- stringr::str_split_fixed(
+          fus_sub$chromRightStart, ":", 2
+        )[, 1]
         fus_sub$chromLeftStart <- gsub(".*\\:", "", fus_sub$chromLeftStart)
         fus_sub$chromRightStart <- gsub(".*\\:", "", fus_sub$chromRightStart)
         fus_sub <- fus_sub[, -3]

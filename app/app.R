@@ -28,11 +28,12 @@ invisible(
   )
 )
 shiny::shinyOptions(
-  cache = cachem::cache_disk("./pdxrna-app-cache")
+  cache = cachem::cache_disk(
+    fs::path("..", "pdxrna-app-cache")
+  )
 )
 
-
-dds <- reactiveValues(
+dds <- shiny::reactiveValues(
   dds = NULL,
   metadata = NULL,
   fusions = NULL,
@@ -44,7 +45,7 @@ rev_num <- "0.1.1"
 
 # Define UI for application that draws a histogram
 ui <- function(request) {
-  fluidPage(
+  shiny::fluidPage(
     # theme = shinytheme("simplex"), useShinyjs(), # spacelab
     theme = bslib::bs_theme(
       version = 5,
@@ -74,7 +75,7 @@ ui <- function(request) {
 
     # Bookmark Button
     shiny::bookmarkButton(),
-    navbarPage(
+    shiny::navbarPage(
       title = HTML(
         paste0("PDXplorer RNA <br> <font size='0.5'>", rev_num, "</font>")
       ),
@@ -183,7 +184,7 @@ server <- function(input, output, session) {
   res_auth <- shinymanager::secure_server(
     check_credentials = shinymanager::check_credentials(
       db = "../data/userdb.sqlite",
-      passphrase = config::get("userdb", file = fs::path("data", "config.yml"))
+      passphrase = config::get("userdb", file = fs::path("..", "data", "config.yml"))
     )
   )
 
@@ -201,113 +202,118 @@ server <- function(input, output, session) {
     ssgsea_ui_flag = FALSE
   )
 
-  observeEvent(input$tabs, {
-    if (grepl("PCA", input$tabs)) {
-      if (RV$pca_ui_flg) {
-        return()
+  shiny::observeEvent(
+    eventExpr = input$tabs,
+    handlerExpr = {
+      if (grepl("PCA", input$tabs)) {
+        if (RV$pca_ui_flg) {
+          return()
+        }
+        # TODO: @luciorq Use `ShinyCSSLoaders` while waiting for modules & Plots
+        shiny::withProgress(
+          message = "Loading dataset",
+          expr = {
+            shiny::incProgress(0, detail = "This may take a while...")
+
+            # TODO: @luciorq Move data (RDS) to a database or .parquet files
+            dds$dds <- readr::read_rds("../data/dds_all_nov2022.rds")
+            colData(dds$dds)$sampleName <- make.names(
+              as.character(colData(dds$dds)$sampleName)
+            )
+            colData(dds$dds)$type_source <- paste0(
+              colData(dds$dds)$type, "_", colData(dds$dds)$source
+            )
+            # dds$dds$type_design <- make.names(dds$dds$type_design)
+            dds$metadata <- data.frame(
+              colData(dds$dds)
+            )[, c("patient", "passage", "source", "type", "purity"), ]
+            dds$metadata$type_source <- paste0(
+              dds$metadata$type, "_", dds$metadata$source
+            )
+
+            # TODO: @luciorq Move from `callModule` to `moduleServer`
+            callModule(
+              pcaMod, "pca",
+              dds = dds$dds,
+              metadata = dds$metadata
+            )
+            shiny::incProgress(amount = 1 / 7)
+
+            # Gene Exploration
+            callModule(
+              geMod,
+              "ge",
+              dds = dds$dds,
+              metadata = dds$metadata
+            )
+            shiny::incProgress(amount = 1 / 7)
+
+            # Clustering
+            callModule(
+              clusterMod,
+              "cls",
+              dds = dds$dds,
+              metadata = dds$metadata
+            )
+            shiny::incProgress(amount = 1 / 7)
+
+            # Marker genes
+            callModule(
+              markersMod,
+              "markers",
+              dds = dds$dds,
+              metadata = dds$metadata
+            )
+            shiny::incProgress(amount = 1 / 7)
+
+            # Fusion explorer
+            dds$fusions <- readRDS("../data/fusions_nov2022.rds")
+            dds$fusions$summary$sample <- make.names(dds$fusions$summary$sample)
+            dds$fusions$list$sample <- make.names(dds$fusions$list$sample)
+            callModule(
+              fusionMod,
+              "fus",
+              fusions = dds$fusions,
+              metadata = dds$metadata
+            )
+            shiny::incProgress(amount = 1 / 7)
+
+            # ssGSEA
+            dds$gsva <- readr::read_rds("../data/gsva_nov2022.rds")
+            dds$ssgsea <- readr::read_rds("../data/ssgsea_nov2022.rds")
+            callModule(
+              gseaMod,
+              "gsea",
+              dds = dds$dds,
+              gsva = dds$gsva,
+              ssgsea = dds$ssgsea,
+              metadata = dds$metadata
+            )
+            shiny::incProgress(amount = 1 / 7)
+
+            # Differential genes
+            dds$fit <- readr::read_rds("../data/fit_all_nov2022.rds")
+            dds$fit_pdx <- readr::read_rds("../data/fit_pdx_only_nov2022.rds")
+            dds$fit_primary <- readr::read_rds(
+              "../data/fit_primary_only_nov2022.rds"
+            )
+
+            callModule(
+              diffMod,
+              "diff",
+              dds = dds$dds,
+              metadata = dds$metadata,
+              fit = dds$fit,
+              fit_pdx = dds$fit_pdx,
+              fit_primary = dds$fit_primary
+            )
+            shiny::incProgress(amount = 1 / 7)
+          }
+        )
+        RV$pca_ui_flg <- TRUE
       }
-
-      # TODO: @luciorq Use `ShinyCSSLoaders` while waiting for modules & Plots
-      withProgress(message = "Loading dataset", {
-        incProgress(0, detail = "This may take a while...")
-
-        # TODO: @luciorq Move data (RDS) to a database or .parquet files
-        dds$dds <- readr::read_rds("../data/dds_all_nov2022.rds")
-        colData(dds$dds)$sampleName <- make.names(
-          as.character(colData(dds$dds)$sampleName)
-        )
-        colData(dds$dds)$type_source <- paste0(
-          colData(dds$dds)$type, "_", colData(dds$dds)$source
-        )
-        # dds$dds$type_design <- make.names(dds$dds$type_design)
-        dds$metadata <- data.frame(
-          colData(dds$dds)
-        )[, c("patient", "passage", "source", "type", "purity"), ]
-        dds$metadata$type_source <- paste0(
-          dds$metadata$type, "_", dds$metadata$source
-        )
-
-        # TODO: @luciorq Move from `callModule` to `moduleServer`
-        callModule(
-          pcaMod, "pca",
-          dds = dds$dds,
-          metadata = dds$metadata
-        )
-        incProgress(1 / 7)
-
-        # Gene Exploration
-        callModule(
-          geMod,
-          "ge",
-          dds = dds$dds,
-          metadata = dds$metadata
-        )
-        incProgress(1 / 7)
-
-        # Clustering
-        callModule(
-          clusterMod,
-          "cls",
-          dds = dds$dds,
-          metadata = dds$metadata
-        )
-        incProgress(1 / 7)
-
-        # Marker genes
-        callModule(
-          markersMod,
-          "markers",
-          dds = dds$dds,
-          metadata = dds$metadata
-        )
-        incProgress(1 / 7)
-
-        # Fusion explorer
-        dds$fusions <- readRDS("../data/fusions_nov2022.rds")
-        dds$fusions$summary$sample <- make.names(dds$fusions$summary$sample)
-        dds$fusions$list$sample <- make.names(dds$fusions$list$sample)
-        callModule(
-          fusionMod,
-          "fus",
-          fusions = dds$fusions,
-          metadata = dds$metadata
-        )
-        incProgress(1 / 7)
-
-        # ssGSEA
-        dds$gsva <- readr::read_rds("../data/gsva_nov2022.rds")
-        dds$ssgsea <- readr::read_rds("../data/ssgsea_nov2022.rds")
-        callModule(
-          gseaMod,
-          "gsea",
-          dds = dds$dds,
-          gsva = dds$gsva,
-          ssgsea = dds$ssgsea,
-          metadata = dds$metadata
-        )
-        incProgress(1 / 7)
-
-        # Differential genes
-        dds$fit <- readr::read_rds("../data/fit_all_nov2022.rds")
-        dds$fit_pdx <- readr::read_rds("../data/fit_pdx_only_nov2022.rds")
-        dds$fit_primary <- readr::read_rds(
-          "../data/fit_primary_only_nov2022.rds"
-        )
-
-        callModule(
-          diffMod,
-          "diff",
-          dds = dds$dds,
-          metadata = dds$metadata,
-          fit = dds$fit,
-          fit_pdx = dds$fit_pdx,
-          fit_primary = dds$fit_primary
-        )
-        incProgress(1 / 7)
-      })
-      RV$pca_ui_flg <- TRUE
     }
-  })
+  )
 }
 
 # Run the application

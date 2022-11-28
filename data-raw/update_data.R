@@ -1,24 +1,24 @@
 # -----------------------------------------------------------------------------
 # As of 2022-11-20
-# + by @luciorq
+# + by @luciorq and @jdblischak
 
 # Original files:
 # + data/dds_all_march2021.RDS ✅
 # + data/fit_all_march2021.RDS ✅
-# + data/fit_pdxOnly_march2021.RDS
-# + data/fit_primaryOnly_march2021.RDS
-# + data/fusions_2019.RDS
-# + data/gsva.RDS
-# + data/ssgsea.RDS
-
-
+# + data/fit_pdxOnly_march2021.RDS ✅
+# + data/fit_primaryOnly_march2021.RDS ✅
+# + data/fusions_2019.RDS ✅
+# + data/gsva.RDS ✅
+# + data/ssgsea.RDS ✅
 
 # -----------------------------------------------------------------------------
 # DDS object
 # Remove DLBCL sample data from main objects
 x <- readr::read_rds("data/dds_all_march2021.RDS")
 sample_annot <- colData(x)
-samples_to_keep <- colnames(x[, !stringr::str_detect(sample_annot$type, "DLBCL")])
+samples_to_keep <- colnames(
+  x[, !stringr::str_detect(sample_annot$type, "DLBCL")]
+)
 
 y <- x[, !stringr::str_detect(sample_annot$type, "DLBCL")]
 
@@ -49,6 +49,7 @@ rm(x, y, i)
 # LM Fit object ALL
 x <- readr::read_rds("data/fit_all_march2021.RDS")
 
+#' Remove DBLCL samples from fit object
 remove_dlbcl_fit <- function(x) {
   for (i in seq_along(x)) {
     if (any(stringr::str_detect(colnames(x[[i]]), "DLBCL"))) {
@@ -76,7 +77,6 @@ x <- readr::read_rds("data/fit_primaryOnly_march2021.RDS")
 remove_dlbcl_fit(x) |>
   readr::write_rds("data/fit_primary_only_nov2022.rds")
 rm(x)
-
 # -----------------------------------------------------------------------------
 # Fusions object
 # TODO: @luciorq Change Patient column
@@ -89,6 +89,7 @@ x |>
 rm(x)
 # -----------------------------------------------------------------------------
 # GSVA object
+#' Remove DBLCL samples from GSVA object
 remove_dlbcl_gsva <- function(x) {
   for (i in seq_along(x)) {
     x[[i]] <- x[[i]][, colnames(x[[i]]) %in% samples_to_keep]

@@ -28,7 +28,6 @@ RUN apt-get install --yes --no-install-recommends \
   pandoc
 
 ENV TZ UTC
-
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 
@@ -39,7 +38,7 @@ RUN export _RIG_VERSION=0.5.2 \
   && ln -sf /data/bin/rig /usr/local/bin/rig \
   && rm -rf /rig-linux-${_RIG_VERSION}.tar.gz
 
-RUN rig add release
+RUN rig add 4.2.2
 
 RUN addgroup --system app \
     && adduser --disabled-password \
@@ -49,6 +48,7 @@ RUN addgroup --system app \
     app \
     && adduser app sudo
 
+# Requirement for 'pak' to install system dependencies
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 RUN chown app:app -R /home/app
@@ -98,7 +98,7 @@ RUN R -q -s -e \
   "bioc::EnhancedVolcano", \
   "bioc::chimeraviz", \
   "github::statistikat/codeModules", \
-  "github::luciorq/ABCutilities" \
+  "github::marchionniLab/ABCutilities" \
   ),upgrade=TRUE,ask=FALSE);'
 
 USER root
@@ -109,11 +109,6 @@ RUN rm -rf /tmp/downloaded_packages/ \
   && rm -rf /data
 
 USER app
-
-ENV TZ UTC
-
-ENV LC_ALL en_US.UTF-8
-ENV LANG en_US.UTF-8
 
 COPY --chown=app:app app /home/app/pdxplorer/app
 

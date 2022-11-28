@@ -206,44 +206,44 @@ fusionOutput <- function(id) {
 
 ## SERVER ######################################################################
 fusionMod <- function(input, output, session, fusions, metadata) {
-  updateSelectInput(
+  shiny::updateSelectInput(
     session,
     "remove_samples",
     choices = c("", row.names(metadata)),
     selected = ""
   )
-  updateSelectInput(
+  shiny::updateSelectInput(
     session,
     "select_samples_by",
     choices = c(names(metadata)),
     selected = "type"
   )
-  updateSelectInput(
+  shiny::updateSelectInput(
     session,
     "columun_annotation",
     choices = c("", names(metadata)),
     selected = ""
   )
-  updateSelectInput(
+  shiny::updateSelectInput(
     session,
     "include_samples",
     choices = c("", row.names(metadata)),
     selected = NULL
   )
-  updateSelectInput(
+  shiny::updateSelectInput(
     session,
     "facet_by_row",
     choices = c(none = ".", names(metadata)),
     selected = "."
   )
-  updateSelectInput(
+  shiny::updateSelectInput(
     session,
     "facet_by_col",
     choices = c(none = ".", names(metadata)),
     selected = "."
   )
 
-  data <- reactiveValues(
+  data <- shiny::reactiveValues(
     data = NULL,
     retain_samples = NULL,
     remove_samples = NULL,
@@ -251,7 +251,10 @@ fusionMod <- function(input, output, session, fusions, metadata) {
     redraw = TRUE
   )
 
-  hideTab(inputId = "inter_tabs", target = "empty")
+  shiny::hideTab(
+    inputId = "inter_tabs",
+    target = "empty"
+  )
 
   observeEvent(input$tabs, {
     if (input$tabs == "Summary") {
@@ -579,7 +582,7 @@ fusionMod <- function(input, output, session, fusions, metadata) {
                 fusions$list[[input$select_samples_by]]
               )
               shiny::incProgress(1 / 4)
-              # TODO: @luciorq Remove as.list around unique if error is not fixed
+              # TODO: @luciorq Fix `list_of_fusions` not being in the right format
               vennset <- systemPipeR::overLapper(
                 list_of_fusions,
                 type = "vennsets"

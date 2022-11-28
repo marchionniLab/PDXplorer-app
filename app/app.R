@@ -267,7 +267,7 @@ server <- function(input, output, session) {
             shiny::incProgress(amount = 1 / 7)
 
             # Fusion explorer
-            dds$fusions <- readRDS("../data/fusions_nov2022.rds")
+            dds$fusions <- readr::read_rds("../data/fusions_nov2022.rds")
             dds$fusions$summary$sample <- make.names(dds$fusions$summary$sample)
             dds$fusions$list$sample <- make.names(dds$fusions$list$sample)
             callModule(

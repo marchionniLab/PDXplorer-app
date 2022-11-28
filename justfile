@@ -15,7 +15,7 @@ sync server='omega':
   #! /usr/bin/env -S bash -i
   rsync -e 'ssh' -r --delete --info=progress2 \
   --exclude 'renv' --exclude '.git' \
-  ~/projects/PDXplorer-app {{server}}:projects;
+  {{justfile_directory()}} {{server}}:projects;
 
 build-container:
   #! /usr/bin/env -S bash -i

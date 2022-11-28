@@ -72,6 +72,7 @@ RUN R -q -s -e \
   "shinydashboard", \
   "shinyjs", \
   "shinythemes", \
+  "shinymanager", \
   "bslib", \
   "rhino", \
   "cachem", \

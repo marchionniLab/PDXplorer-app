@@ -10,6 +10,7 @@ library(grid)
 library(gridExtra)
 library(codeModules)
 library(ggdendro)
+library(shinymanager)
 
 source("modules/pca.R")
 source("modules/clustering.R")
@@ -39,7 +40,7 @@ dds <- reactiveValues(
   ssgsea = NULL
 )
 
-rev_num <- "0.1.0"
+rev_num <- "0.1.1"
 
 # Define UI for application that draws a histogram
 ui <- function(request) {
@@ -175,8 +176,22 @@ ui <- function(request) {
   )
 }
 
+ui <- secure_app(ui, enable_admin = TRUE)
+
 server <- function(input, output, session) {
-  RV <- reactiveValues(
+  # check_credentials directly on sqlite db
+  res_auth <- shinymanager::secure_server(
+    check_credentials = shinymanager::check_credentials(
+      db = "../data/userdb.sqlite",
+      passphrase = config::get("userdb", file = fs::path("data", "config.yml"))
+    )
+  )
+
+  output$auth_output <- renderPrint({
+    reactiveValuesToList(res_auth)
+  })
+
+  RV <- shiny::reactiveValues(
     pca_ui_flg = FALSE,
     cls_ui_flg = FALSE,
     ge_ui_flg = FALSE,

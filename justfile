@@ -26,3 +26,7 @@ run-container port='8383':
   docker stop pdxplorer-app;
   docker rm pdxplorer-app;
   docker run -d -p {{port}}:80 --name pdxplorer-app pdxplorer-app:latest;
+
+monitor:
+  #! /usr/bin/env -S bash -i
+  docker logs -f pdxplorer-app;

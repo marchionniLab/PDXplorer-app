@@ -598,93 +598,52 @@ fusionMod <- function(input, output, session, fusions, metadata) {
           message = "Calculation in progress",
           detail = "This may take a while...",
           value = 0,
-          {
-            for (i in 1:4) {
-              list_of_fusions <- lapply(
-                unique(
-                  fusions$list[[input$select_samples_by]]
-                ),
-                function(x) {
-                  fusions$list[get(input$select_samples_by) == x]$fusion.name
-                }
-              )
-              shiny::incProgress(2 / 4)
-              names(list_of_fusions) <- unique(
-                fusions$list[[input$select_samples_by]]
-              )
-              shiny::incProgress(1 / 4)
-              # TODO: @luciorq Fix `list_of_fusions` not being in the right format
-              vennset <- systemPipeR::overLapper(
-                list_of_fusions,
-                type = "vennsets"
-              )
-              shiny::incProgress(1 / 4)
-              Sys.sleep(0.25)
-            }
+          expr = {
+            # NOTE: @luciorq New Intersection block
+            shiny::incProgress(2 / 4)
+            fusions_by_groups_df <- fusions$list |>
+              tibble::as_tibble() |>
+              dplyr::select(
+                {
+                  input$select_samples_by
+                },
+                fusion.name
+              ) |>
+              dplyr::group_by(.data[[input$select_samples_by]], fusion.name) |>
+              dplyr::summarise(num_samples = dplyr::n()) |>
+              dplyr::ungroup() |>
+              dplyr::distinct() |>
+              dplyr::arrange(desc(num_samples))
+            shiny::incProgress(2 / 4)
+            # |>
+            # tidyr::pivot_wider(
+            #    names_from = {input$select_samples_by},
+            #    values_from = num_samples,
+            #    values_fill = 0L
+            #  )
           }
         )
-
-        l <- systemPipeR::vennlist(vennset)
-        l <- l[lengths(l) > input$set_size]
-        max_table <- length(l)
-        # https://stackoverflow.com/questions/28003715/caption-in-rendertable-shiny
-        lst <- list()
-        for (i in 1:max_table) {
-          df <- subset(
-            fusions$list,
-            fusion.name %in% l[[i]]
+        output$inter_tables <- DT::renderDataTable(
+          funsion_by_groups_df,
+          server = TRUE,
+          rownames = FALSE,
+          filter = list(position = "top", clear = FALSE),
+          options = list(
+            scrollX = TRUE,
+            search = list(regex = TRUE, caseInsensitive = TRUE),
+            pageLength = 20
           )
-          lst[[i]] <- as.data.frame(df) # [,-c(3,10,11,12,13)]
-        }
-
-        output$inter_tables <- shiny::renderUI({
-          plot_output_list <- lapply(
-            1:max_table,
-            function(i) {
-              tablename <- paste("tablename", i, sep = "")
-              shiny::tabPanel(
-                names(l[i]),
-                DT::dataTableOutput(
-                  outputId = session$ns(tablename)
-                )
-              )
-            }
-          )
-          do.call(
-            shiny::tabsetPanel,
-            c(plot_output_list, id = "level")
-          )
-        })
-
-        for (i in 1:max_table) {
-          local({
-            my_i <- i
-            tablename <- paste("tablename", my_i, sep = "")
-            output[[tablename]] <- DT::renderDataTable(
-              {
-                lst[[my_i]]
-              },
-              server = TRUE,
-              rownames = FALSE,
-              filter = list(position = "top", clear = FALSE),
-              options = list(
-                scrollX = TRUE,
-                search = list(regex = TRUE, caseInsensitive = TRUE),
-                pageLength = 20
-              )
-            )
-          })
-        }
+        )
       }
     },
     ignoreNULL = FALSE
   )
 
-  output$upsetr <- shiny::renderPlot({
+  # output$upsetr <- shiny::renderPlot({
 
-  })
+  # })
 
-  # plot --------------------------------------------
+  # Circos Plot --------------------------------------------
   output$circos_plot <- shiny::renderPlot({
     shiny::validate(
       shiny::need(

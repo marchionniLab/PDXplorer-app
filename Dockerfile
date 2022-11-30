@@ -94,7 +94,6 @@ RUN R -q -s -e \
   "bioc::limma", \
   "bioc::DESeq2", \
   "bioc::scran", \
-  "bioc::systemPipeR", \
   "bioc::EnhancedVolcano", \
   "bioc::chimeraviz", \
   "github::statistikat/codeModules", \

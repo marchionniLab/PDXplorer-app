@@ -22,7 +22,6 @@ samples_to_keep <- colnames(
 
 y <- x[, !stringr::str_detect(sample_annot$type, "DLBCL")]
 
-
 sample_annot <- colData(y)
 sample_cols <- colnames(sample_annot)
 
@@ -43,14 +42,6 @@ y@colData <- sample_annot
 y |>
   readr::write_rds("data/dds_all_nov2022.rds")
 rm(x, y, i)
-# Replace "patient" column with "sample_origin"
-x <- readr::read_rds("data/dds_all_nov2022.rds")
-vars_vector <- colnames(x@colData)
-vars_vector[vars_vector == "patient"] <- "sample_origin"
-vars_vector[vars_vector == "sampleName"] <- "sample_name"
-colnames(x@colData) <- vars_vector
-x |>
-  readr::write_rds("data/dds_all_nov2022.rds")
 
 # -----------------------------------------------------------------------------
 # LM Fit object ALL
@@ -121,6 +112,37 @@ rm(x)
 # + "data/msigdb/*"
 # TODO: @luciorq Update msigdb, maybe use the R package to download the gmt
 fs::dir_ls("data/msigdb/")
+
+# -----------------------------------------------------------------------------
+# Replace metadata for Patients
+# -----------------------------------------------------------------------------
+# Replace "patient" column with "sample_origin"
+
+# DDS
+x <- readr::read_rds("data/dds_all_nov2022.rds")
+vars_vector <- colnames(x@colData)
+vars_vector[vars_vector == "patient"] <- "sample_origin"
+vars_vector[vars_vector == "sampleName"] <- "sample_name"
+colnames(x@colData) <- vars_vector
+x |>
+  readr::write_rds("data/dds_all_nov2022.rds")
+rm(x)
+
+# Fusions
+x <- readr::read_rds("data/fusions_nov2022.rds")
+
+vars_vector <- colnames(x[[1]])
+vars_vector[vars_vector == "patient"] <- "sample_origin"
+vars_vector[vars_vector == "sampleName"] <- "sample_name"
+colnames(x[[1]]) <- vars_vector
+
+vars_vector <- colnames(x[[2]])
+vars_vector[vars_vector == "patient"] <- "sample_origin"
+vars_vector[vars_vector == "sampleName"] <- "sample_name"
+colnames(x[[2]]) <- vars_vector
+x |>
+  readr::write_rds("data/fusions_nov2022.rds")
+rm(x)
 
 # -----------------------------------------------------------------------------
 # Create User Database

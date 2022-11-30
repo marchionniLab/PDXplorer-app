@@ -233,7 +233,8 @@ server <- function(input, output, session) {
 
             # TODO: @luciorq Move from `callModule` to `moduleServer`
             callModule(
-              pcaMod, "pca",
+              pcaMod,
+              "pca",
               dds = dds$dds,
               metadata = dds$metadata
             )

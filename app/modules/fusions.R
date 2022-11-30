@@ -72,7 +72,7 @@ fusionInput <- function(id) {
     facet_by_row,
     facet_by_col,
     htmltools::hr(),
-    uiOutput(ns("ui_header")),
+    shiny::uiOutput(ns("ui_header")),
     #   h5("Include / exclude samples"),
     select_samples_by,
     select_all,
@@ -86,7 +86,7 @@ fusionInput <- function(id) {
 }
 
 fusionOutput <- function(id) {
-  ns <- NS(id)
+  ns <- shiny::NS(id)
 
   htmltools::tagList(
 
@@ -153,10 +153,11 @@ fusionOutput <- function(id) {
           collapsible = FALSE
         )
       ),
-      tabPanel(
+      shiny::tabPanel(
         "Tables",
         shinydashboard::box(
-          title = "Tables", width = 12,
+          title = "Tables",
+          width = 12,
           DT::dataTableOutput(
             outputId = ns("fusion_table"),
             height = "1000px"
@@ -164,26 +165,26 @@ fusionOutput <- function(id) {
           collapsible = FALSE
         )
       ),
-      tabPanel(
+      shiny::tabPanel(
         "Intersections",
-        tabsetPanel(
+        shiny::tabsetPanel(
           id = ns("inter_tabs"),
-          tabPanel(
-            "empty",
-            "This is the hello tab"
+          shiny::tabPanel(
+            title = "empty", "This is the hello tab"
           )
         ),
-        tags$div(id = ns("placeholder")),
-        uiOutput(ns("inter_tables"))
+        htmltools::tags$div(id = ns("placeholder")),
+        shiny::uiOutput(ns("inter_tables"))
       ),
       tabPanel(
-        "Circos plots",
+        title = "Circos plots",
         shinydashboard::box(
           width = 12, title = "Circos plot",
           fluidRow(
             column(
               width = 5,
-              selectInput(ns("use_fusions_from"),
+              selectInput(
+                ns("use_fusions_from"),
                 label = "Select data from:",
                 choices = c(
                   "STAR Fusion" = "star.fusion_final",
@@ -251,15 +252,16 @@ fusionMod <- function(input, output, session, fusions, metadata) {
     redraw = TRUE
   )
 
+  # TODO: @luciorq What is this for?
   shiny::hideTab(
     inputId = "inter_tabs",
     target = "empty"
   )
 
-  observeEvent(input$tabs, {
+  shiny::observeEvent(input$tabs, {
     if (input$tabs == "Summary") {
       output$ui_header <- shiny::renderUI({
-        h5("Include / exclude samples")
+        htmltools::h5("Include / exclude samples")
       })
       shinyjs::enable("selected_samples")
       shinyjs::hide("selected_fusion")
@@ -271,10 +273,15 @@ fusionMod <- function(input, output, session, fusions, metadata) {
       shinyjs::show("selected_samples")
       shinyjs::show("select_all")
       shinyjs::hide("set_size")
-      updateTextInput(session, "title", label = "Plot title", value = "Number of fusions detected")
+      shiny::updateTextInput(
+        session,
+        "title",
+        label = "Plot title",
+        value = "Number of fusions detected"
+      )
     } else if (input$tabs == "Tables") {
-      output$ui_header <- renderUI({
-        h5("Include / exclude samples")
+      output$ui_header <- shiny::renderUI({
+        htmltools::h5("Include / exclude samples")
       })
       shinyjs::enable("selected_samples")
       shinyjs::show("selected_fusion")
@@ -287,8 +294,8 @@ fusionMod <- function(input, output, session, fusions, metadata) {
       shinyjs::show("select_all")
       shinyjs::hide("set_size")
     } else if (input$tabs == "Intersections") {
-      output$ui_header <- renderUI({
-        h5("Find intersections by: ")
+      output$ui_header <- shiny::renderUI({
+        htmltools::h5("Find intersections by: ")
       })
       shinyjs::hide("selected_fusion")
       shinyjs::hide("title")
@@ -296,13 +303,18 @@ fusionMod <- function(input, output, session, fusions, metadata) {
       shinyjs::hide("facet_by_row")
       shinyjs::hide("remove_samples")
       shinyjs::hide("include_samples")
-      updateCheckboxGroupInput(session, "selected_samples", choices = unique(metadata[[input$select_samples_by]]), selected = unique(metadata[[input$select_samples_by]]), inline = TRUE)
+      shiny::updateCheckboxGroupInput(
+        session, "selected_samples",
+        choices = unique(metadata[[input$select_samples_by]]),
+        selected = unique(metadata[[input$select_samples_by]]),
+        inline = TRUE
+      )
       shinyjs::hide("selected_samples")
       shinyjs::hide("select_all")
       shinyjs::show("set_size")
     } else if (input$tabs == "Circos plots") {
-      output$ui_header <- renderUI({
-        h5("Include / exclude samples")
+      output$ui_header <- shiny::renderUI({
+        htmltools::h5("Include / exclude samples")
       })
       shinyjs::enable("selected_samples")
       shinyjs::hide("selected_fusion")
@@ -314,14 +326,23 @@ fusionMod <- function(input, output, session, fusions, metadata) {
       shinyjs::show("selected_samples")
       shinyjs::show("select_all")
       shinyjs::hide("set_size")
-      updateTextInput(session, "title", label = "Plot title", value = "Fusions for selected sample(s)")
+      shiny::updateTextInput(
+        session, "title",
+        label = "Plot title",
+        value = "Fusions for selected sample(s)"
+      )
     }
   })
 
   shiny::observeEvent(
     eventExpr = input$select_samples_by,
     handlerExpr = {
-      updateCheckboxGroupInput(session, "selected_samples", choices = unique(metadata[[input$select_samples_by]]), selected = NULL, inline = TRUE)
+      shiny::updateCheckboxGroupInput(
+        session, "selected_samples",
+        choices = unique(metadata[[input$select_samples_by]]),
+        selected = NULL,
+        inline = TRUE
+      )
     },
     ignoreInit = FALSE
   )
@@ -330,7 +351,12 @@ fusionMod <- function(input, output, session, fusions, metadata) {
   shiny::observeEvent(
     eventExpr = input$select_all,
     handlerExpr = {
-      updateCheckboxGroupInput(session, "selected_samples", choices = unique(metadata[[input$select_samples_by]]), selected = unique(metadata[[input$select_samples_by]]), inline = TRUE)
+      shiny::updateCheckboxGroupInput(
+        session, "selected_samples",
+        choices = unique(metadata[[input$select_samples_by]]),
+        selected = unique(metadata[[input$select_samples_by]]),
+        inline = TRUE
+      )
     }
   )
 
@@ -527,7 +553,12 @@ fusionMod <- function(input, output, session, fusions, metadata) {
 
   output$fusion_table <- DT::renderDataTable(
     {
-      df <- subset(fusions$list, sample %in% setdiff(unique(c(data$retain_samples, data$include_samples)), data$remove_samples))
+      df <- subset(
+        fusions$list, sample %in% setdiff(
+          unique(c(data$retain_samples, data$include_samples)),
+          data$remove_samples
+        )
+      )
       if (length(input$selected_fusion) > 0) {
         df <- subset(df, fusion.name %in% c(input$selected_fusion))
       }

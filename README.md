@@ -1,8 +1,65 @@
-# PDXplorer
+# PDXplorer App
 
-```r
-shiny::runApp()
+## To build Docker container
+
+```bash
+docker buildx build -t pdxplorer-app:latest .
 ```
+
+To run Docker container:
+
+```bash
+docker run -d -p <EXTERNAL_PORT>:80 --name pdxplorer-app pdxplorer-app:latest;
+```
+
+## To run locally
+
+### Install Dependencies
+
+```bash
+R -q -s -e 'if(!requireNamespace("pak",quietly=TRUE)){install.packages("pak")};'
+
+R -q -s -e 'pak::pkg_install(pkg=c(
+  "shiny",
+  "shinydashboard",
+  "shinyjs",
+  "shinythemes",
+  "shinymanager",
+  "bslib",
+  "rhino",
+  "cachem",
+  "data.table",
+  "reshape2",
+  "fs",
+  "dplyr",
+  "tidyr",
+  "readr",
+  "ggdendro",
+  "ggplot2",
+  "grid",
+  "gridExtra",
+  "DT",
+  "scales",
+  "pheatmap",
+  "RColorBrewer",
+  "bioc::maftools",
+  "bioc::limma",
+  "bioc::DESeq2",
+  "bioc::scran",
+  "bioc::EnhancedVolcano",
+  "bioc::chimeraviz",
+  "github::statistikat/codeModules",
+  "github::marchionniLab/ABCutilities"
+  ),upgrade=TRUE,ask=FALSE);'
+
+```
+
+### Run Application
+
+```bash
+R -q -s -e "shiny::runApp(appDir='./app',host='0.0.0.0',port=8383,launch.browser=FALSE)"
+```
+
 
 ## TODO
 
@@ -10,23 +67,10 @@ shiny::runApp()
 - [ ] Remove dependency on `reshape2`, `data.table`, and `magrittr`.
 - [ ] Fix warnings to replace `aes_string()` on `ggplot2` calls.
 - [ ] Fix `size` for `linewidth` on line-based `geom_*` in `ggplot2` calls.
-- [x] Fix `scran` call to C++ `cxx_fit_linear_model` function on [`findMarkers.R`](./app/R/findMarkers.R).
-  - Currently using an older version of `scran` from GitHub commit "e8c73c25bade05483d60025578955c2b357f08f9".
-  - Moved C++ code ABCutilities:::fit_linear_model.
 - [ ] Create Icon, explorer mouse hugging a cell or RNA molecule.
-- [ ] Create Login screen with [`shinymanager`](https://datastorm-open.github.io/shinymanager/).
-- [ ] Move `app/app.R` to `app/main`
-- [ ] Replace CallModules for
-- [x] Crash on tables panel for gene explorer, further investigation
-- [x] `ggjoy` warning, complaining to move to `ggridges`
-- [ ] Intersections panel is crashing, under _Fusion explorer_ tab, with the error below:
-
-```r
-Warning: Error in systemPipeR::overLapper: Unexpected input.
-             The input 'setlist' needs to be of class 'list' where each list component stores a
-             label set as 'vector' and the name of each label set is provided under the
-             name slot of each list component.
-```
+- [ ] Move `app/app.R` to `app/main`.
+- [ ] Replace `callModules()` for `moduleServer()` to allow the use of `testServer()`.
+- [ ] There is a panel without the image generation layer behind the plot.
 
 ## Run app locally
 

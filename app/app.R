@@ -21,6 +21,8 @@ source("modules/ssgsea.R")
 source("modules/differential.R")
 source("modules/markers.R")
 
+# Loads helper functions:q
+
 invisible(
   sapply(
     list.files(path = "R/", pattern = "\\.R$", full.names = TRUE),
@@ -33,6 +35,8 @@ shiny::shinyOptions(
   )
 )
 
+# TODO: @luciorq Check for data path existance
+
 dds <- shiny::reactiveValues(
   dds = NULL,
   metadata = NULL,
@@ -41,7 +45,7 @@ dds <- shiny::reactiveValues(
   ssgsea = NULL
 )
 
-rev_num <- "0.1.1"
+rev_num <- "0.2.0"
 
 # Define UI for application that draws a histogram
 ui <- function(request) {
@@ -181,6 +185,7 @@ ui <- secure_app(ui, enable_admin = TRUE)
 
 server <- function(input, output, session) {
   # check_credentials directly on sqlite db
+  # TODO: @luciorq Remove authentication layer after publication
   res_auth <- shinymanager::secure_server(
     check_credentials = shinymanager::check_credentials(
       db = "../data/userdb.sqlite",
@@ -191,6 +196,8 @@ server <- function(input, output, session) {
   output$auth_output <- renderPrint({
     reactiveValuesToList(res_auth)
   })
+  # TODO: @luciorq Add log for the authenticated user
+  # + and additional information.
 
   RV <- shiny::reactiveValues(
     pca_ui_flg = FALSE,
@@ -238,6 +245,8 @@ server <- function(input, output, session) {
               dds = dds$dds,
               metadata = dds$metadata
             )
+            # shiny::callModule()
+
             shiny::incProgress(amount = 1 / 7)
 
             # Gene Exploration

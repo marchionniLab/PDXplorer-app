@@ -165,17 +165,17 @@ fusionOutput <- function(id) {
           collapsible = FALSE
         )
       ),
-      shiny::tabPanel(
-        "Intersections",
-        shiny::tabsetPanel(
-          id = ns("inter_tabs"),
-          shiny::tabPanel(
-            title = "empty", "This is the hello tab"
-          )
-        ),
-        htmltools::tags$div(id = ns("placeholder")),
-        shiny::uiOutput(ns("inter_tables"))
-      ),
+      # shiny::tabPanel(
+      #   "Intersections",
+      #   shiny::tabsetPanel(
+      #     id = ns("inter_tabs"),
+      #     shiny::tabPanel(
+      #       title = "empty", "This is the hello tab"
+      #     )
+      #   ),
+      #   htmltools::tags$div(id = ns("placeholder")),
+      #   shiny::uiOutput(ns("inter_tables"))
+      # ),
       tabPanel(
         title = "Circos plots",
         shinydashboard::box(
@@ -581,63 +581,58 @@ fusionMod <- function(input, output, session, fusions, metadata) {
   )
   # 'fusion.name' = 9,
 
-  shiny::observeEvent(
-    eventExpr = {
-      shiny::validate(
-        shiny::need(
-          input$tabs == "Intersections",
-          message = ""
-        )
-      )
-      input$select_samples_by
-      input$set_size
-    },
-    handlerExpr = {
-      if (input$select_samples_by != "") {
-        shiny::withProgress(
-          message = "Calculation in progress",
-          detail = "This may take a while...",
-          value = 0,
-          expr = {
-            # NOTE: @luciorq New Intersection block
-            shiny::incProgress(2 / 4)
-            fusions_by_groups_df <- fusions$list |>
-              tibble::as_tibble() |>
-              dplyr::select(
-                {
-                  input$select_samples_by
-                },
-                fusion.name
-              ) |>
-              dplyr::group_by(.data[[input$select_samples_by]], fusion.name) |>
-              dplyr::summarise(num_samples = dplyr::n()) |>
-              dplyr::ungroup() |>
-              dplyr::distinct() |>
-              dplyr::arrange(desc(num_samples))
-            shiny::incProgress(2 / 4)
-            # |>
-            # tidyr::pivot_wider(
-            #    names_from = {input$select_samples_by},
-            #    values_from = num_samples,
-            #    values_fill = 0L
-            #  )
-          }
-        )
-        output$inter_tables <- DT::renderDataTable(
-          funsion_by_groups_df,
-          server = TRUE,
-          rownames = FALSE,
-          filter = list(position = "top", clear = FALSE),
-          options = list(
-            scrollX = TRUE,
-            search = list(regex = TRUE, caseInsensitive = TRUE),
-            pageLength = 20
-          )
-        )
-      }
-    },
-    ignoreNULL = FALSE
-  )
+  # shiny::observeEvent(
+  #   eventExpr = {
+  #     shiny::validate(
+  #       shiny::need(
+  #         input$tabs == "Intersections",
+  #         message = ""
+  #       )
+  #     )
+  #     input$select_samples_by
+  #     input$set_size
+  #   },
+  #   handlerExpr = {
+  #     if (input$select_samples_by != "") {
+  #       shiny::withProgress(
+  #         message = "Calculation in progress",
+  #         detail = "This may take a while...",
+  #         value = 0,
+  #         expr = {
+  #           # NOTE: @luciorq New Intersection block
+  #           shiny::incProgress(2 / 4)
+  #           fusions_by_groups_df <- fusions$list |>
+  #             tibble::as_tibble() |>
+  #             dplyr::select({{ input$select_samples_by }}, fusion.name) |>
+  #             dplyr::group_by(.data[[input$select_samples_by]], fusion.name) |>
+  #             dplyr::summarise(num_samples = dplyr::n()) |>
+  #             dplyr::ungroup() |>
+  #             dplyr::distinct() |>
+  #             dplyr::arrange(desc(num_samples))
+  #           shiny::incProgress(2 / 4)
+  #           # |>
+  #           # tidyr::pivot_wider(
+  #           #    names_from = {input$select_samples_by},
+  #           #    values_from = num_samples,
+  #           #    values_fill = 0L
+  #           #  )
+  #         }
+  #       )
+  #       output$inter_tables <- DT::renderDataTable(
+  #         funsion_by_groups_df,
+  #         server = TRUE,
+  #         rownames = FALSE,
+  #         filter = list(position = "top", clear = FALSE),
+  #         options = list(
+  #           scrollX = TRUE,
+  #           search = list(regex = TRUE, caseInsensitive = TRUE),
+  #           pageLength = 20
+  #         )
+  #       )
+  #     }
+  #   },
+  #   ignoreNULL = FALSE
+  # )
 
   # output$upsetr <- shiny::renderPlot({
 
